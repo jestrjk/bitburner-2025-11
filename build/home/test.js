@@ -73,14 +73,23 @@ function MyComponent() {
   const [count, setCount] = (0, import_react.useState)(0);
   return /* @__PURE__ */ import_react.default.createElement("div", null, "Count ", count, " ", /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => setCount(count + 1) }, "Add to count"));
 }
+function ServerBrowser({ ns }) {
+  const [serverList, setServerList] = (0, import_react.useState)(new ServerList(ns));
+  setInterval(() => {
+    setServerList(new ServerList(ns));
+  }, 1e3);
+  return /* @__PURE__ */ import_react.default.createElement("table", null, /* @__PURE__ */ import_react.default.createElement("thead", null, /* @__PURE__ */ import_react.default.createElement("tr", null, /* @__PURE__ */ import_react.default.createElement("td", null, "Hostname"), /* @__PURE__ */ import_react.default.createElement("td", null, "Max$"), /* @__PURE__ */ import_react.default.createElement("td", null, "$"))), /* @__PURE__ */ import_react.default.createElement("tbody", null, serverList.all_servers.map(
+    (server) => /* @__PURE__ */ import_react.default.createElement("tr", null, /* @__PURE__ */ import_react.default.createElement("td", null, server.hostname), /* @__PURE__ */ import_react.default.createElement("td", null, server.moneyMax), /* @__PURE__ */ import_react.default.createElement("td", null, server.moneyAvailable))
+  )));
+}
 async function main(ns) {
   ns.ui.openTail();
   ns.disableLog("scan");
   ns.printRaw(/* @__PURE__ */ import_react.default.createElement(MyComponent, null));
-  const serverList = new ServerList(ns);
-  ns.print(serverList.all_servers.map((s) => s.hostname).join(", "));
+  ns.printRaw(/* @__PURE__ */ import_react.default.createElement(ServerBrowser, { ns }));
 }
 export {
   MyComponent,
+  ServerBrowser,
   main
 };
