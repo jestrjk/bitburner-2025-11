@@ -1,6 +1,8 @@
 import {NS} from "NetscriptDefinitions";
 import React, {useState} from 'react';
 
+import {ServerList} from "./server_information/ServerInformationList";
+
 export function MyComponent(){
   const [count, setCount] = useState(0);
 
@@ -9,7 +11,11 @@ export function MyComponent(){
 
 export async function main(ns: NS) {
   ns.ui.openTail();
-  ns.tprint("Hello World");
-
+  ns.disableLog("scan")
+  
   ns.printRaw(<MyComponent />);
+
+  const serverList = new ServerList(ns);
+  ns.print(serverList.all_servers.map(s=>s.hostname).join(', '))
+
 }
