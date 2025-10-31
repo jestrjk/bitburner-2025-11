@@ -1,38 +1,45 @@
-import {NS} from "NetscriptDefinitions";
+import {NS, Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
 
-import {ServerList} from "./server_information/ServerInformationList";
-
-export function MyComponent(){
-  const [count, setCount] = useState(0);
-
-  return <div>Count {count} <button onClick={() => setCount(count + 1)}>Add to count</button></div>;
-}
+import {readServerList} from "./server_information/ServerInformationList";
 
 export function ServerBrowser( { ns }: { ns:NS } ) {
-  const [serverList, setServerList] = useState(new ServerList(ns));
+  const [serverList, setServerList] = useState<Server[]>([]);
+  const [lastUpdated, setLastUpdated] = useState(0);
   
-  setInterval(() => {
-    setServerList(new ServerList(ns));  
-  }, 1000);
+  useEffect( () => {
+    
+    let intervalId = 0
+    const fetchServers = async () => {
+      setServerList( await readServerList(ns) )
+      setLastUpdated(Date.now())
+    } 
+
+    fetchServers()
+    intervalId = setInterval(fetchServers, 2000);
+
+    return () => clearInterval(intervalId);
+
+  }, [ns]);
   
-  return ( <table>
-    <thead><tr><td>Hostname</td><td>Max$</td><td>$</td></tr></thead>
-    <tbody>
-      {serverList.all_servers.map(server => 
-        ( <tr><td>{server.hostname}</td><td>{server.moneyMax}</td><td>{server.moneyAvailable}</td></tr> )
-      )}
-    </tbody>
-  </table> )
+  return ( <div>
+    <table>
+      <thead><tr><td>Hostname</td><td>Max$</td><td>$</td></tr></thead>
+      <tbody>
+        {serverList.map(server => 
+          ( <tr><td>{server.hostname}</td><td>{server.moneyMax}</td><td>{server.moneyAvailable}</td></tr> )
+        )}
+      </tbody>
+    </table>
+    <div>Updated: {lastUpdated}</div>
+    </div> )
 }
 
 export async function main(ns: NS) {
   ns.ui.openTail();
   ns.disableLog("scan")
-  // TODO: Prevent the script death (bitburner error) of ns by creating an update loop
-  // in this main function. How do we use the state in react here instead of there?
   
-  ns.printRaw(<MyComponent />);
-  ns.printRaw(<ServerBrowser ns={ns} />);
+  ns.printRaw( <ServerBrowser ns={ns} />);
   
+  return  new Promise( () => {} )
 }

@@ -35,61 +35,36 @@ var require_react = __commonJS({
 var import_react = __toESM(require_react());
 
 // servers/home/server_information/ServerInformationList.ts
-var ServerList = class {
-  constructor(ns) {
-    this.ns = ns;
-    this.buildAllServers();
-    this.buildScriptHosts();
-    this.getUtilityHosts();
-  }
-  ns;
-  all_servers = [];
-  script_hosts = [];
-  utility_hosts = [];
-  buildAllServers() {
-    this.recursiveServerScan("home");
-  }
-  getUtilityHosts() {
-    this.utility_hosts = this.all_servers.filter((s) => s.purchasedByPlayer && s.hostname.startsWith("utility-"));
-  }
-  buildScriptHosts() {
-    this.script_hosts = this.all_servers.filter((s) => s.purchasedByPlayer);
-  }
-  recursiveServerScan(parent_host_name = "home") {
-    let new_server_names = this.ns.scan(parent_host_name);
-    for (let new_server_name of new_server_names) {
-      if (this.all_servers.filter((s) => s.hostname == new_server_name).length > 0) {
-        continue;
-      } else {
-        this.all_servers.push(this.ns.getServer(new_server_name));
-        this.recursiveServerScan(new_server_name);
-      }
-    }
-  }
-};
+async function readServerList(ns) {
+  return JSON.parse(await ns.peek(1 /* SERVER_LIST */));
+}
 
 // servers/home/test.tsx
-function MyComponent() {
-  const [count, setCount] = (0, import_react.useState)(0);
-  return /* @__PURE__ */ import_react.default.createElement("div", null, "Count ", count, " ", /* @__PURE__ */ import_react.default.createElement("button", { onClick: () => setCount(count + 1) }, "Add to count"));
-}
 function ServerBrowser({ ns }) {
-  const [serverList, setServerList] = (0, import_react.useState)(new ServerList(ns));
-  setInterval(() => {
-    setServerList(new ServerList(ns));
-  }, 1e3);
-  return /* @__PURE__ */ import_react.default.createElement("table", null, /* @__PURE__ */ import_react.default.createElement("thead", null, /* @__PURE__ */ import_react.default.createElement("tr", null, /* @__PURE__ */ import_react.default.createElement("td", null, "Hostname"), /* @__PURE__ */ import_react.default.createElement("td", null, "Max$"), /* @__PURE__ */ import_react.default.createElement("td", null, "$"))), /* @__PURE__ */ import_react.default.createElement("tbody", null, serverList.all_servers.map(
+  const [serverList, setServerList] = (0, import_react.useState)([]);
+  const [lastUpdated, setLastUpdated] = (0, import_react.useState)(0);
+  (0, import_react.useEffect)(() => {
+    let intervalId = 0;
+    const fetchServers = async () => {
+      setServerList(await readServerList(ns));
+      setLastUpdated(Date.now());
+    };
+    fetchServers();
+    intervalId = setInterval(fetchServers, 2e3);
+    return () => clearInterval(intervalId);
+  }, [ns]);
+  return /* @__PURE__ */ import_react.default.createElement("div", null, /* @__PURE__ */ import_react.default.createElement("table", null, /* @__PURE__ */ import_react.default.createElement("thead", null, /* @__PURE__ */ import_react.default.createElement("tr", null, /* @__PURE__ */ import_react.default.createElement("td", null, "Hostname"), /* @__PURE__ */ import_react.default.createElement("td", null, "Max$"), /* @__PURE__ */ import_react.default.createElement("td", null, "$"))), /* @__PURE__ */ import_react.default.createElement("tbody", null, serverList.map(
     (server) => /* @__PURE__ */ import_react.default.createElement("tr", null, /* @__PURE__ */ import_react.default.createElement("td", null, server.hostname), /* @__PURE__ */ import_react.default.createElement("td", null, server.moneyMax), /* @__PURE__ */ import_react.default.createElement("td", null, server.moneyAvailable))
-  )));
+  ))), /* @__PURE__ */ import_react.default.createElement("div", null, "Updated: ", lastUpdated));
 }
 async function main(ns) {
   ns.ui.openTail();
   ns.disableLog("scan");
-  ns.printRaw(/* @__PURE__ */ import_react.default.createElement(MyComponent, null));
   ns.printRaw(/* @__PURE__ */ import_react.default.createElement(ServerBrowser, { ns }));
+  return new Promise(() => {
+  });
 }
 export {
-  MyComponent,
   ServerBrowser,
   main
 };
