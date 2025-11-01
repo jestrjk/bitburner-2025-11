@@ -1,7 +1,7 @@
 import {NS, Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
 
-import {readServerList, ServerListData} from "./ServerInformationList";
+import {readServerList} from "./ServerInformationList";
 
 let intervalId = 0;
 
@@ -11,24 +11,47 @@ const sortByMoneyAvailable = (a:Server, b:Server) => b.moneyAvailable - a.moneyA
 
 let sortFunction = sortByHostname;
 
+function customStyles() {
+  return <style>
+    {'.money-col { text-align: right; } .hostname-col { text-align: left; }'}
+    {'td,th { padding-left: .2em; padding-right: .2em; }'}  
+    {'th{ .2em; text-decoration: underline; cursor: s-resize;}'}
+    </style>;
+}
+
 export function ServerBrowser( { ns }: { ns:NS } ) {
   const [serverList, setServerList] = useState<Server[]>([]);
   const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [displayUnrootedServers, setDisplayUnrootedServers] = useState(false);
   
-  const fetchServers = async ( newSortFunction:(a:Server, b:Server) => number ) => {
+  const fetchServers = ( newSortFunction:(a:Server, b:Server) => number ) => {
     // Theres got to be a better way to do this. Maybe not.
     // Im being lazy and dont want to explicitly set the sort function and then
     // have to call fetchServers(sortFunction) in the header click events
     sortFunction = newSortFunction;
+
     let data = readServerList(ns)
+    ns.tprint( `fetchServers:DisplayUnrootedServers: ${displayUnrootedServers}`)
+    if ( !displayUnrootedServers ) {
+      data.servers = data.servers.filter( s => s.hasAdminRights )
+    }
     setServerList( data.servers.sort(sortFunction) )
     setLastUpdated( data.last_updated )
   } 
 
+  const displayUnrootedServersClick = () => {
+    setDisplayUnrootedServers(!displayUnrootedServers)
+  }
+
+  let filterControls = <div>
+    <button className={`btn ${displayUnrootedServers ? 'active' : ''}`} 
+      onClick={() => displayUnrootedServersClick()}>Un-Rooted Servers</button>
+    </div>;
+
   let sortHeader = ( <tr>
-    <th className="hostname-col" onClick={() => fetchServers(sortByHostname)} text-align="left"><b>Hostname</b></th>
-    <th className="money-col" onClick={() => fetchServers(sortByMoneyAvailable)} text-align="right"><b>$</b></th>
-    <th className="money-col" onClick={() => fetchServers(sortByMoneyMax)} text-align="right"><b>Max$</b></th>
+    <th className="hostname-col" onClick={() => fetchServers(sortByHostname)}><b>Hostname</b></th>
+    <th className="money-col" onClick={() => fetchServers(sortByMoneyAvailable)}><b>$</b></th>
+    <th className="money-col" onClick={() => fetchServers(sortByMoneyMax)}><b>Max$</b></th>
     </tr> );
 
   useEffect( () => {
@@ -39,22 +62,11 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     return () => clearInterval(intervalId);
   }, [ns]);
 
-  let getLastUpdatedDateTime = () => {
-    try {
-      return new Date(lastUpdated).toLocaleString()
-    } catch (e) {
-      return "Unknown"
-    }
-  }
-
-  let styles = <style>
-    {'.money-col { text-align: right; } .hostname-col { text-align: left; }'}
-    {'td,th { padding-left: .2em; padding-right: .2em; }'}  
-    {'th{ .2em; text-decoration: underline; cursor: s-resize;}'}
-    </style>;
+  
 
   return ( <div>
-    {styles}
+    {customStyles()}
+      {filterControls}
       <table>
         <thead>{sortHeader}</thead>
         <tbody> 
@@ -66,9 +78,18 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
           )}
         </tbody>
       </table>
-    <div>Updated: {getLastUpdatedDateTime()} ({lastUpdated})</div>
+    <div>Updated: {getLastUpdatedDateTime(lastUpdated)} ({lastUpdated})</div>
     </div> )
 }
+
+function getLastUpdatedDateTime(lastUpdate:number) {
+  try {
+    return new Date(lastUpdate).toLocaleString()
+  } catch (e) {
+    return "Unknown"
+  }
+}
+
 
 export async function main(ns: NS) {
   ns.clearLog()
