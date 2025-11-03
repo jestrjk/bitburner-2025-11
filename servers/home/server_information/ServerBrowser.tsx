@@ -33,6 +33,9 @@ const sortByIsAdmin = (a:Server, b:Server) => {
 const sortByHackDifficulty = (a:Server, b:Server) => b.hackDifficulty - a.hackDifficulty;
 const sortByMinDifficulty = (a:Server, b:Server) => b.minDifficulty - a.minDifficulty;
 const sortByRequiredHackingSkill = (a:Server, b:Server) => b.requiredHackingSkill - a.requiredHackingSkill;
+const sortByGrowTime = (a:Server, b:Server) => _ns.getGrowTime(b.hostname) - _ns.getGrowTime(a.hostname);
+const sortByHackTime = (a:Server, b:Server) => _ns.getHackTime(b.hostname) - _ns.getHackTime(a.hostname);
+const sortByWeakenTime = (a:Server, b:Server) => _ns.getWeakenTime(b.hostname) - _ns.getWeakenTime(a.hostname);
 
 let sortFunction = sortByHostname;
 
@@ -49,6 +52,7 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
   const [lastUpdated, setLastUpdated] = useState(Date.now());
   const [displayIsAdminOnlyServers, setDisplayIsAdminServers] = useState(true);
   const [displayServersWithZeroMaxMoney, setDisplayServersWithZeroMaxMoney] = useState(false);
+  
   
   const fetchServers = ( newSortFunction:(a:Server, b:Server) => number ) => {
     // Theres got to be a better way to do this. Maybe not.
@@ -70,7 +74,7 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
   useEffect( () => {
     
     fetchServers(sortFunction)
-    intervalId = setInterval(() => fetchServers(sortFunction), 2000);
+    intervalId = setInterval(() => fetchServers(sortFunction), 500);
 
     return () => clearInterval(intervalId);
   }, [ns, displayIsAdminOnlyServers, displayServersWithZeroMaxMoney]);
@@ -89,6 +93,9 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     <th className="" onClick={() => fetchServers(sortByHackDifficulty)}><b>Hack</b></th>
     <th className="" onClick={() => fetchServers(sortByRequiredHackingSkill)}><b>Req Hack</b></th>
     <th className="" onClick={() => fetchServers(sortByIsAdmin)}><b>Admin</b></th>
+    <th className="" onClick={() => fetchServers(sortByGrowTime)}><b>Grow</b></th>
+    <th className="" onClick={() => fetchServers(sortByHackTime)}><b>Hack</b></th>
+    <th className="" onClick={() => fetchServers(sortByWeakenTime)}><b>Weaken</b></th>
   </tr> );
   
   return ( <div>
@@ -105,6 +112,9 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
             <td>{ns.formatNumber(server.requiredHackingSkill,0)}</td>
             <td className="">{server.hasAdminRights ? 'A' : ''}</td>
             <td>{`[${ns.formatNumber(server.hackDifficulty,1)} | ${ns.formatNumber(server.minDifficulty,0)}]`}</td>
+            <td>{ns.formatNumber(ns.getGrowTime(server.hostname)/1000,0)}s</td>
+            <td>{ns.formatNumber(ns.getHackTime(server.hostname)/1000,0)}s</td>
+            <td>{ns.formatNumber(ns.getWeakenTime(server.hostname)/1000,0)}s</td>
 
             <td><button onClick={() => hackServer(server)}>Hack</button></td>
             <td><button onClick={() => growServer(server)}>Grow</button></td>
@@ -145,7 +155,7 @@ export async function main(ns: NS) {
   })
 
   while ( true ) {
-    await ns.asleep(2000)
+    await ns.asleep(500)
   }
 }
 

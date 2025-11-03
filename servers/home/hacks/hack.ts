@@ -3,5 +3,5 @@ export async function main(ns : NS) {
 
     let hack_result = await ns.hack( target )
 
-    ns.tprint(`[${target}] hack_result: ${hack_result}`)
+    //ns.tprint(`[${target}] hack_result: ${hack_result}`)
 }

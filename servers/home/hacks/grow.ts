@@ -3,5 +3,5 @@ export async function main(ns : NS) {
 
     let grow_result = await ns.grow( target )
 
-    ns.tprint(`[${target}] grow_result: ${grow_result}`)
+    //ns.tprint(`[${target}] grow_result: ${grow_result}`)
 }

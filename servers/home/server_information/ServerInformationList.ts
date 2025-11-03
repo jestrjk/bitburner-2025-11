@@ -59,7 +59,7 @@ export async function main(ns:NS) {
   
     ns.print( `Scanned ${new_server_list.length} servers`)
     ns.print( `Last updated: ${new Date().toLocaleString()}`) 
-    await ns.sleep(2000)    
+    await ns.sleep(500)    
   }
 }
 

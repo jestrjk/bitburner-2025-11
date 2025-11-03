@@ -3,5 +3,5 @@ export async function main(ns : NS) {
 
     let weaken_result = await ns.weaken( target )
 
-    ns.tprint(`[${target}] weaken_result: ${weaken_result}`)
+    //ns.tprint(`[${target}] weaken_result: ${weaken_result}`)
 }
