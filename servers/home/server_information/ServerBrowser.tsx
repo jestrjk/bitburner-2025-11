@@ -5,9 +5,34 @@ import {readServerList} from "./ServerInformationList";
 
 let intervalId = 0;
 
+let _ns:NS;
+
+const hackServer = (server:Server) => {
+    _ns.exec( 'hacks/hack.js', 'home', { threads: 100 }, server.hostname )
+  }
+
+const growServer = (server:Server) => {
+    _ns.exec( 'hacks/grow.js', 'home', { threads: 100 }, server.hostname )
+  }
+
+const weakenServer = (server:Server) => {
+    _ns.exec( 'hacks/weaken.js', 'home', { threads: 100 }, server.hostname )
+  }
+
 const sortByHostname = (a:Server, b:Server) => a.hostname.localeCompare(b.hostname);
 const sortByMoneyMax = (a:Server, b:Server) => b.moneyMax - a.moneyMax;
 const sortByMoneyAvailable = (a:Server, b:Server) => b.moneyAvailable - a.moneyAvailable;
+const sortByIsAdmin = (a:Server, b:Server) => { 
+  const isAdmin_A = a.hasAdminRights ? 1 : 0; 
+  const isAdmin_B = b.hasAdminRights ? 1 : 0; 
+  if ( isAdmin_A === isAdmin_B ) {
+    return a.hostname.localeCompare( b.hostname );
+  }
+  return isAdmin_A - isAdmin_B; 
+};
+const sortByHackDifficulty = (a:Server, b:Server) => b.hackDifficulty - a.hackDifficulty;
+const sortByMinDifficulty = (a:Server, b:Server) => b.minDifficulty - a.minDifficulty;
+const sortByRequiredHackingSkill = (a:Server, b:Server) => b.requiredHackingSkill - a.requiredHackingSkill;
 
 let sortFunction = sortByHostname;
 
@@ -22,7 +47,8 @@ function customStyles() {
 export function ServerBrowser( { ns }: { ns:NS } ) {
   const [serverList, setServerList] = useState<Server[]>([]);
   const [lastUpdated, setLastUpdated] = useState(Date.now());
-  const [displayUnrootedServers, setDisplayUnrootedServers] = useState(false);
+  const [displayIsAdminOnlyServers, setDisplayIsAdminServers] = useState(true);
+  const [displayServersWithZeroMaxMoney, setDisplayServersWithZeroMaxMoney] = useState(false);
   
   const fetchServers = ( newSortFunction:(a:Server, b:Server) => number ) => {
     // Theres got to be a better way to do this. Maybe not.
@@ -31,28 +57,15 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     sortFunction = newSortFunction;
 
     let data = readServerList(ns)
-    ns.tprint( `fetchServers:DisplayUnrootedServers: ${displayUnrootedServers}`)
-    if ( !displayUnrootedServers ) {
+    if ( displayIsAdminOnlyServers ) {
       data.servers = data.servers.filter( s => s.hasAdminRights )
+    }
+    if ( !displayServersWithZeroMaxMoney ) {
+      data.servers = data.servers.filter( s => s.moneyMax! > 0 )
     }
     setServerList( data.servers.sort(sortFunction) )
     setLastUpdated( data.last_updated )
   } 
-
-  const displayUnrootedServersClick = () => {
-    setDisplayUnrootedServers(!displayUnrootedServers)
-  }
-
-  let filterControls = <div>
-    <button className={`btn ${displayUnrootedServers ? 'active' : ''}`} 
-      onClick={() => displayUnrootedServersClick()}>Un-Rooted Servers</button>
-    </div>;
-
-  let sortHeader = ( <tr>
-    <th className="hostname-col" onClick={() => fetchServers(sortByHostname)}><b>Hostname</b></th>
-    <th className="money-col" onClick={() => fetchServers(sortByMoneyAvailable)}><b>$</b></th>
-    <th className="money-col" onClick={() => fetchServers(sortByMoneyMax)}><b>Max$</b></th>
-    </tr> );
 
   useEffect( () => {
     
@@ -60,10 +73,24 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     intervalId = setInterval(() => fetchServers(sortFunction), 2000);
 
     return () => clearInterval(intervalId);
-  }, [ns]);
+  }, [ns, displayIsAdminOnlyServers, displayServersWithZeroMaxMoney]);
 
+  let filterControls = <div>
+    <button className={`btn ${displayIsAdminOnlyServers ? 'active' : ''}`} 
+      onClick={() => setDisplayIsAdminServers(!displayIsAdminOnlyServers)}>IsAdmin?</button>
+    <button className={`btn ${displayServersWithZeroMaxMoney ? 'active' : ''}`} 
+      onClick={() => setDisplayServersWithZeroMaxMoney(!displayServersWithZeroMaxMoney)}>Zero Max Money</button>
+  </div>;
+
+  let sortHeader = ( <tr>
+    <th className="hostname-col" onClick={() => fetchServers(sortByHostname)}><b>Hostname</b></th>
+    <th className="money-col" onClick={() => fetchServers(sortByMoneyAvailable)}><b>$</b></th>
+    <th className="money-col" onClick={() => fetchServers(sortByMoneyMax)}><b>Max$</b></th>
+    <th className="" onClick={() => fetchServers(sortByHackDifficulty)}><b>Hack</b></th>
+    <th className="" onClick={() => fetchServers(sortByRequiredHackingSkill)}><b>Req Hack</b></th>
+    <th className="" onClick={() => fetchServers(sortByIsAdmin)}><b>Admin</b></th>
+  </tr> );
   
-
   return ( <div>
     {customStyles()}
       {filterControls}
@@ -74,6 +101,15 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
             <td className="hostname-col">{server.hostname}</td>
             <td className="money-col">{ns.formatNumber(server.moneyAvailable,1)}</td>
             <td className="money-col">{ns.formatNumber(server.moneyMax,1)}</td>
+            
+            <td>{ns.formatNumber(server.requiredHackingSkill,0)}</td>
+            <td className="">{server.hasAdminRights ? 'A' : ''}</td>
+            <td>{`[${ns.formatNumber(server.hackDifficulty,1)} | ${ns.formatNumber(server.minDifficulty,0)}]`}</td>
+
+            <td><button onClick={() => hackServer(server)}>Hack</button></td>
+            <td><button onClick={() => growServer(server)}>Grow</button></td>
+            <td><button onClick={() => weakenServer(server)}>Weaken</button></td>
+
             </tr> )
           )}
         </tbody>
@@ -90,18 +126,20 @@ function getLastUpdatedDateTime(lastUpdate:number) {
   }
 }
 
-
 export async function main(ns: NS) {
   ns.clearLog()
   ns.ui.openTail();
   ns.disableLog("scan")
   ns.disableLog("asleep")
+  ns.disableLog("getServerSecurityLevel")
+  ns.disableLog("getServerRequiredHackingLevel")
+  ns.disableLog("exec")
  
+  _ns = ns; // Convenience
+
   ns.printRaw( <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossOrigin="anonymous"></link>)
   ns.printRaw( <ServerBrowser ns={ns} />);
   
-  // return  new Promise( () => {} )
-
   ns.atExit( () => {
     clearInterval(intervalId)
   })
@@ -110,3 +148,4 @@ export async function main(ns: NS) {
     await ns.asleep(2000)
   }
 }
+
