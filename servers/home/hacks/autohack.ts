@@ -1,32 +1,8 @@
-import { ServerListData, readServerList } from "../server_information/ServerInformationList";
+import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from "../runtime_data_managment/runtime_data_manager";
+import { ServerListData } from "../runtime_data_polling/ServerListData";
+import { RunningScriptData } from "../runtime_data_polling/RunningScriptData";
 
 let _ns:NS;
-
-interface hackingData {
- hackType: string,
- threads: number,
- scriptRunner: string,
- hostname: string
-}
-
-const whosBeingHacked:hackingData[] = []
-
-function reconcileRunningScripts(ns:NS) {
-  const psResults = ns.ps( "home" )
-  psResults.forEach( psResult => {
-    let match = /(hack|weaken|grow)\.js$/.exec(psResult.filename)
-    //ns.tprint( `${psResult.args.join(" ")}` )
-    if ( match ){
-      whosBeingHacked.push({
-        hostname: psResult.args[0]?.toString() || "",
-        hackType: match[1],
-        threads:  psResult.threads,
-        scriptRunner: "home"
-      })
-    }
-  })
-  
-}
 
 function _exec( script:string, scriptRunner: string, threads:number, hostname:string ) {
   let pid = _ns.exec(script, "home", threads, hostname)
@@ -39,18 +15,19 @@ export async function main(ns : NS) {
     _ns = ns; // Convenience
     ns.ui.openTail();
 
-    const data = {}
+		const serverListDataManager = new RuntimeDataManager<ServerListData>(ns, RUNTIME_DATA_FILENAMES.SERVER_LIST)
+    const runningScriptDataManager = new RuntimeDataManager<RunningScriptData>(ns, RUNTIME_DATA_FILENAMES.RUNNING_SCRIPTS)
+
     while (true) {
-      const serverListData:ServerListData = readServerList(ns)
-      whosBeingHacked.length = 0;
-      reconcileRunningScripts(ns)
+      const serverListData:ServerListData = serverListDataManager.readData()
+      const runningScriptData:RunningScriptData = runningScriptDataManager.readData()
       
       serverListData.servers.forEach( server => {
 
         if ( !server.hasAdminRights )  { return } ;
         if ( server.moneyMax === 0 )  { return } ;
         if ( server.requiredHackingSkill > ns.getHackingLevel() )  { return } ;
-        if ( whosBeingHacked.find( h => h.hostname === server.hostname ) ) { return };
+        if ( runningScriptData.runningScripts.find( s => s.targetHostname === server.hostname ) ) { return };
 
         const hackChance = ns.hackAnalyzeChance(server.hostname)
         const moneyPercent = server.moneyAvailable / server.moneyMax
@@ -84,8 +61,7 @@ export async function main(ns : NS) {
       })
       
       ns.clearLog()
-      ns.print(JSON.stringify( whosBeingHacked ))
-      ns.print( `Hacking Script #: ${whosBeingHacked.length}`)
+      ns.print( `Hacking Script #: ${runningScriptData.runningScripts.length}`)
       ns.print( `Updated: ${new Date().toLocaleString()}`)
       await ns.sleep(1000)
     }

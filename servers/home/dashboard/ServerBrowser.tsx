@@ -1,7 +1,7 @@
-import {NS, Server} from "NetscriptDefinitions";
+import {Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
-
-import {readServerList} from "./ServerInformationList";
+import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from '../runtime_data_managment/runtime_data_manager';
+import { ServerListData } from '../runtime_data_polling/ServerListData';
 
 let intervalId = 0;
 
@@ -60,7 +60,9 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     // have to call fetchServers(sortFunction) in the header click events
     sortFunction = newSortFunction;
 
-    let data = readServerList(ns)
+		const dataManager = new RuntimeDataManager<ServerListData>(ns, RUNTIME_DATA_FILENAMES.SERVER_LIST)
+    let data = dataManager.readData()
+
     if ( displayIsAdminOnlyServers ) {
       data.servers = data.servers.filter( s => s.hasAdminRights )
     }
