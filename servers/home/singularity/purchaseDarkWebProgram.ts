@@ -1,8 +1,9 @@
 
 export async function main(ns:NS) {
-  ns.tail()
-  ns.moveTail( 400, 400 )
-  ns.singularity.purchaseTor()  
+  ns.ui.openTail()
+  ns.ui.moveTail( 400, 400 )
+  
+	ns.singularity.purchaseTor()  
   
   while(true) {
 
@@ -12,17 +13,14 @@ export async function main(ns:NS) {
       ns.print( `${program.padEnd( 20 )} $${ns.formatNumber( cost,1)}`)
     }
     
-    programs.push( "EXIT" ) 
-    let choice:string = <string> await ns.prompt( "What program to purchase from the DarkWeb?", {
-      type: "select",
-      choices: programs,
-    })
-    if ( choice === "EXIT" ) {
-      ns.closeTail()
-      ns.exit()
-    } 
+		programs.forEach( program => {
+			let cost = ns.singularity.getDarkwebProgramCost( program )
+			if ( cost < ns.getPlayer().money ) {
+				ns.singularity.purchaseProgram(program)
+			}
+		})
 
-    ns.singularity.purchaseProgram(choice)
+		await ns.sleep(1000)
   }
 }
 

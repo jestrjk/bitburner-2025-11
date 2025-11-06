@@ -6,7 +6,6 @@ export async function main(ns:NS) {
   
   pather.goToTarget()
   await ns.singularity.installBackdoor()
-  await ns.sleep(5000)
 }
 
 export function autocomplete(data:any, args:any) {

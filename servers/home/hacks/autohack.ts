@@ -69,7 +69,7 @@ export async function main(ns : NS) {
         }       
 
       })
-      
+
       ns.clearLog()
       ns.print( `Hacking Script #: ${runningScriptData.runningScripts.length}`)
       ns.print( `Updated: ${new Date().toLocaleString()}`)
