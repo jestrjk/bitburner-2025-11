@@ -19,14 +19,24 @@ export async function main(ns : NS) {
     const runningScriptDataManager = new RuntimeDataManager<RunningScriptData>(ns, RUNTIME_DATA_FILENAMES.RUNNING_SCRIPTS)
 
     while (true) {
+			const startTime = Date.now()
       const serverListData:ServerListData = serverListDataManager.readData()
       const runningScriptData:RunningScriptData = runningScriptDataManager.readData()
       
       serverListData.servers.forEach( server => {
+				
+				if ( !server.hasAdminRights )  { 
+					try{ ns.sqlinject(server.hostname) } catch (e) { }
+					try{ ns.brutessh(server.hostname) } catch (e) { }
+					try{ ns.ftpcrack(server.hostname) } catch (e) { }
+					try{ ns.httpworm(server.hostname) } catch (e) { }
+					try{ ns.relaysmtp(server.hostname) } catch (e) { }
+					try{ ns.nuke(server.hostname) } catch (e) { }
+					return;
+				} ;
 
-        if ( !server.hasAdminRights )  { return } ;
-        if ( server.moneyMax === 0 )  { return } ;
-        if ( server.requiredHackingSkill > ns.getHackingLevel() )  { return } ;
+				if ( server.moneyMax === 0 ) { return } ;
+				if ( server.requiredHackingSkill > ns.getHackingLevel() )  { return } ;
         if ( runningScriptData.runningScripts.find( s => s.targetHostname === server.hostname ) ) { return };
 
         const hackChance = ns.hackAnalyzeChance(server.hostname)
@@ -36,17 +46,17 @@ export async function main(ns : NS) {
         const hackTime = ns.getHackTime(server.hostname)
         const weakenTime = ns.getWeakenTime(server.hostname)
         
-        const hackThreads = 1 + Math.ceil(ns.hackAnalyzeThreads(server.hostname, .5*server.moneyAvailable))  
+        const hackThreads = Math.ceil(ns.hackAnalyzeThreads(server.hostname, .5*server.moneyAvailable))  
         
         const growthMultiplier = server.moneyMax/(server.moneyAvailable+1)
         const correctedGrowthMultiplier = growthMultiplier < 1 ? 1 : growthMultiplier
-        const growThreads = 1 + Math.ceil(ns.growthAnalyze(server.hostname, correctedGrowthMultiplier ))  
+        const growThreads = Math.ceil(ns.growthAnalyze(server.hostname, correctedGrowthMultiplier ))  
 
-        const weakenThreads = 1 + Math.ceil((ns.getServerSecurityLevel(server.hostname) - ns.getServerMinSecurityLevel(server.hostname)) / .05)
+        const weakenThreads = Math.ceil((ns.getServerSecurityLevel(server.hostname) - ns.getServerMinSecurityLevel(server.hostname)) / .05)
 
         //ns.tprint( `autohack: ${server.hostname} hackChance: ${hackChance} moneyPercent: ${moneyPercent}`)
 
-        if (hackThreads >= 1) {
+        if (moneyPercent > .9 && hackThreads >= 1) {
           _exec("/hacks/hack.js", "home", hackThreads, server.hostname)
         }
         
@@ -63,6 +73,7 @@ export async function main(ns : NS) {
       ns.clearLog()
       ns.print( `Hacking Script #: ${runningScriptData.runningScripts.length}`)
       ns.print( `Updated: ${new Date().toLocaleString()}`)
+			ns.print( `Took: ${Date.now() - startTime}ms`)
       await ns.sleep(1000)
     }
 }

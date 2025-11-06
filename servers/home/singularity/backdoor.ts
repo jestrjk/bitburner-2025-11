@@ -1,0 +1,18 @@
+import { ServerPath } from '../lib/ServerPath'
+
+export async function main(ns:NS) {
+  ns.ui.openTail()
+  let pather = new ServerPath(ns,ns.getHostname(), ns.args[0].toString())
+  
+  pather.goToTarget()
+  await ns.singularity.installBackdoor()
+  await ns.sleep(5000)
+}
+
+export function autocomplete(data:any, args:any) {
+  let results = []
+  if ( data.servers ) results.push( ...data.servers )
+  if ( data.scripts ) results.push( ...data.scripts )
+
+  return results
+}

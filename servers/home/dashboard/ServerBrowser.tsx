@@ -41,7 +41,7 @@ let sortFunction = sortByHostname;
 
 function customStyles() {
   return <style>
-    {'.money-col { text-align: right; } .hostname-col { text-align: left; }'}
+    {'.r { text-align: right; } .hostname-col { text-align: left; }'}
     {'td,th { padding-left: .2em; padding-right: .2em; }'}  
     {'th{ .2em; text-decoration: underline; cursor: s-resize;}'}
     </style>;
@@ -90,14 +90,14 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
 
   let sortHeader = ( <tr>
     <th className="hostname-col" onClick={() => fetchServers(sortByHostname)}><b>Hostname</b></th>
-    <th className="money-col" onClick={() => fetchServers(sortByMoneyAvailable)}><b>$</b></th>
-    <th className="money-col" onClick={() => fetchServers(sortByMoneyMax)}><b>Max$</b></th>
-    <th className="" onClick={() => fetchServers(sortByHackDifficulty)}><b>Hack</b></th>
-    <th className="" onClick={() => fetchServers(sortByRequiredHackingSkill)}><b>Req Hack</b></th>
-    <th className="" onClick={() => fetchServers(sortByIsAdmin)}><b>Admin</b></th>
-    <th className="" onClick={() => fetchServers(sortByGrowTime)}><b>Grow</b></th>
-    <th className="" onClick={() => fetchServers(sortByHackTime)}><b>Hack</b></th>
-    <th className="" onClick={() => fetchServers(sortByWeakenTime)}><b>Weaken</b></th>
+    <th className="r" onClick={() => fetchServers(sortByMoneyAvailable)}><b>$</b></th>
+    <th className="r" onClick={() => fetchServers(sortByMoneyMax)}><b>Max$</b></th>
+    <th className="r" onClick={() => fetchServers(sortByHackDifficulty)}><b>Hack</b></th>
+    <th className="r" onClick={() => fetchServers(sortByGrowTime)}><b>Grow</b></th>
+    <th className="r" onClick={() => fetchServers(sortByHackTime)}><b>Hack</b></th>
+    <th className="r" onClick={() => fetchServers(sortByWeakenTime)}><b>Weaken</b></th>
+		<th className="r" onClick={() => fetchServers(sortByRequiredHackingSkill)}><b>Req Hack</b></th>
+		<th className="r" onClick={() => fetchServers(sortByIsAdmin)}><b>Admin</b></th>
   </tr> );
   
   return ( <div>
@@ -108,15 +108,14 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
         <tbody> 
           {serverList.map(server => ( <tr>
             <td className="hostname-col">{server.hostname}</td>
-            <td className="money-col">{ns.formatNumber(server.moneyAvailable,1)}</td>
-            <td className="money-col">{ns.formatNumber(server.moneyMax,1)}</td>
-            
-            <td>{ns.formatNumber(server.requiredHackingSkill,0)}</td>
-            <td className="">{server.hasAdminRights ? 'A' : ''}</td>
-            <td>{`[${ns.formatNumber(server.hackDifficulty,1)} | ${ns.formatNumber(server.minDifficulty,0)}]`}</td>
-            <td>{ns.formatNumber(ns.getGrowTime(server.hostname)/1000,0)}s</td>
-            <td>{ns.formatNumber(ns.getHackTime(server.hostname)/1000,0)}s</td>
-            <td>{ns.formatNumber(ns.getWeakenTime(server.hostname)/1000,0)}s</td>
+            <td className="r">{ns.formatNumber(server.moneyAvailable,1)}</td>
+            <td className="r">{ns.formatNumber(server.moneyMax,1)}</td>
+            <td className="r">{`${ns.formatNumber(server.hackDifficulty,1)}->${ns.formatNumber(server.minDifficulty,0)}`}</td>
+            <td className="r">{ns.formatNumber(ns.getGrowTime(server.hostname)/1000,0)}s</td>
+            <td className="r">{ns.formatNumber(ns.getHackTime(server.hostname)/1000,0)}s</td>
+            <td	className="r">{ns.formatNumber(ns.getWeakenTime(server.hostname)/1000,0)}s</td>
+						<td className="r">{server.requiredHackingSkill}</td>
+            <td className="r">{server.hasAdminRights ? 'A' : ''}</td>
 
             <td><button onClick={() => hackServer(server)}>Hack</button></td>
             <td><button onClick={() => growServer(server)}>Grow</button></td>

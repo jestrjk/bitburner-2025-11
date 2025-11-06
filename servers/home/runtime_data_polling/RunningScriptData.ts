@@ -62,13 +62,10 @@ export async function main(ns:NS) {
       last_updated: Date.now(),
 			runningScripts
     })
-  
-		ns.printRaw( "<table><thead><tr><th>Filename</th><th>Threads</th><th>Target</th></tr></thead>")
-		ns.printRaw( "<tbody>")
-		runningScripts.forEach( runningScript => {
-			ns.printRaw( `<tr><td>${runningScript.filename}</td> <td>${runningScript.threads}</td> <td>${runningScript.targetHostname}</td></tr>` )
+		
+		runningScripts.sort((a, b) => a.targetHostname.localeCompare(b.targetHostname)).forEach( runningScript => {
+			ns.printRaw( `[${runningScript.targetHostname}] ${runningScript.filename} ${runningScript.threads}` )
 		})
-		ns.printRaw( "</tbody></table>")
 
     ns.print( `Scanned ${runningScripts.length} running scripts` )
     ns.print( `Last updated: ${new Date().toLocaleString()}` ) 
