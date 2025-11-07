@@ -27,4 +27,43 @@ const createContext = async () => await context({
 });
 
 const ctx = await createContext();
-ctx.watch();
+
+// Handle process termination gracefully
+process.on('SIGINT', async () => {
+  console.log('\nShutting down file watcher...');
+  await ctx.dispose();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('\nShutting down file watcher...');
+  await ctx.dispose();
+  process.exit(0);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', async (error) => {
+  console.error('✗ Uncaught exception:', error);
+  await ctx.dispose();
+  process.exit(1);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', async (reason, promise) => {
+  console.error('✗ Unhandled rejection at:', promise, 'reason:', reason);
+  await ctx.dispose();
+  process.exit(1);
+});
+
+// Start watching
+try {
+  ctx.watch().then(() => {
+    console.log('✓ File watcher started successfully');
+  }).catch((error) => {
+    console.error('✗ File watcher error:', error);
+    process.exit(1);
+  });
+} catch (error) {
+  console.error('✗ Failed to start file watcher:', error);
+  process.exit(1);
+}

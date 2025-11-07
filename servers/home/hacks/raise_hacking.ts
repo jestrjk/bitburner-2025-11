@@ -17,8 +17,8 @@ export async function main(ns:NS) {
 		}
 
 		await ns.sleep(ns.getWeakenTime("n00dles"))
-
-		if ( hackingSkill >= 2500 ) {
+		
+		if ( hackingSkill >= 3000 ) {
 			ns.print( `Finished`)
 			ns.ui.closeTail()
 			ns.exit()

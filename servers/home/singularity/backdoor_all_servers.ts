@@ -10,8 +10,17 @@ const backdoor_servers = [
 export async function main(ns: NS) {
 	ns.ui.openTail();
 
-	for ( const hostname of backdoor_servers ) {
-		await backdoor_run(ns, hostname)
+	while (true) {
+		let backdoor_count = 0 
+		for ( const hostname of backdoor_servers ) {
+			if ( ns.hasRootAccess(hostname) ) { 
+				await backdoor_run(ns, hostname)	
+				backdoor_count++
+			}
+		}
+		ns.print( `Backdoored ${backdoor_count} of ${backdoor_servers.length}`)
+		if ( backdoor_count >= backdoor_servers.length ) { ns.exit() }
+		await ns.sleep(10000)
 	}
 }
 

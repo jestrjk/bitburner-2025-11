@@ -5,6 +5,13 @@ export enum RUNTIME_DATA_FILENAMES {
 	MONEY_OVER_TIME = "runtime_data/money_over_time.json"
 }
 
+export const runtimeDataFileNames = [
+	RUNTIME_DATA_FILENAMES.SERVER_LIST,
+	RUNTIME_DATA_FILENAMES.RUNNING_SCRIPTS,
+	RUNTIME_DATA_FILENAMES.MONEY_OVER_TIME
+]
+
+
 export class RuntimeDataManager<T> {
 	constructor( readonly ns:NS, readonly filename:RUNTIME_DATA_FILENAMES ) {}
 
@@ -16,3 +23,4 @@ export class RuntimeDataManager<T> {
 		this.ns.write(this.filename, JSON.stringify(data), "w")
 	}
 }
+

@@ -4,6 +4,7 @@ export class ServerPath {
     this._start_node_name = start_node_name
     this._target_node_name = target_node_name
 
+    this._ns.disableLog("scan")
     if(!this.findPath( start_node_name )) {
       ns.print(`Could not find Path`)
     }
@@ -41,6 +42,7 @@ export class ServerPath {
       return true
     }
     
+		
     let child_node_names = this._ns.scan( current_node_name )
     for (let child_node_name of child_node_names){
       

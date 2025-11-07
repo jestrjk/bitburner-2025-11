@@ -2,21 +2,24 @@ import {Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
 import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from '../runtime_data_managment/runtime_data_manager';
 import { ServerListData } from '../runtime_data_polling/ServerListData';
+import { _exec } from '../lib/exec';
 
 let intervalId = 0;
 
-let _ns:NS;
+// Be careful here, this can go out of scope. But i don't want to pollute
+// react components with ns
+let _ns:NS; 
 
 const hackServer = (server:Server) => {
-    _ns.exec( 'hacks/hack.js', 'home', { threads: 100 }, server.hostname )
+    _exec(_ns, 'hacks/hack.js', 'home',  100 , server.hostname )
   }
 
 const growServer = (server:Server) => {
-    _ns.exec( 'hacks/grow.js', 'home', { threads: 100 }, server.hostname )
+    _exec(_ns, 'hacks/grow.js', 'home',  100 , server.hostname )
   }
 
 const weakenServer = (server:Server) => {
-    _ns.exec( 'hacks/weaken.js', 'home', { threads: 100 }, server.hostname )
+    _exec(_ns, 'hacks/weaken.js', 'home',  100 , server.hostname )
   }
 
 const sortByHostname = (a:Server, b:Server) => a.hostname.localeCompare(b.hostname);
@@ -140,6 +143,7 @@ function getLastUpdatedDateTime(lastUpdate:number) {
 export async function main(ns: NS) {
   ns.clearLog()
   ns.ui.openTail();
+	ns.disableLog("disableLog")
   ns.disableLog("scan")
   ns.disableLog("asleep")
   ns.disableLog("getServerSecurityLevel")

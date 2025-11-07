@@ -1,14 +1,18 @@
 import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from "../runtime_data_managment/runtime_data_manager";
 import { ServerListData } from "../runtime_data_polling/ServerListData";
 import { RunningScriptData } from "../runtime_data_polling/RunningScriptData";
+import { NS, Server } from "@/NetscriptDefinitions";
+import { _exec, SCRIPT_PATHS } from "../lib/exec";
 
 let _ns:NS;
 
-function _exec( script:string, scriptRunner: string, threads:number, hostname:string ) {
-  let pid = _ns.exec(script, "home", threads, hostname)
-  if ( pid === 0 ) {
-    _ns.tprint( `autohack: failed to exec [${scriptRunner}] ${script} -T ${threads} ${hostname}`)
-  }
+function hackPorts(ns: NS, tServer: Server) {
+	try { ns.sqlinject(tServer.hostname); } catch (e) { }
+	try { ns.brutessh(tServer.hostname); } catch (e) { }
+	try { ns.ftpcrack(tServer.hostname); } catch (e) { }
+	try { ns.httpworm(tServer.hostname); } catch (e) { }
+	try { ns.relaysmtp(tServer.hostname); } catch (e) { }
+	try { ns.nuke(tServer.hostname); } catch (e) { }
 }
 
 export async function main(ns : NS) {
@@ -22,50 +26,44 @@ export async function main(ns : NS) {
 			const startTime = Date.now()
       const serverListData:ServerListData = serverListDataManager.readData()
       const runningScriptData:RunningScriptData = runningScriptDataManager.readData()
-      
-      serverListData.servers.forEach( server => {
+			
+      serverListData.servers.forEach( tServer => {
 				
-				if ( !server.hasAdminRights )  { 
-					try{ ns.sqlinject(server.hostname) } catch (e) { }
-					try{ ns.brutessh(server.hostname) } catch (e) { }
-					try{ ns.ftpcrack(server.hostname) } catch (e) { }
-					try{ ns.httpworm(server.hostname) } catch (e) { }
-					try{ ns.relaysmtp(server.hostname) } catch (e) { }
-					try{ ns.nuke(server.hostname) } catch (e) { }
-					return;
+				if ( !tServer.hasAdminRights )  { 
+					hackPorts(ns, tServer);
+					return
 				} ;
 
-				if ( server.moneyMax === 0 ) { return } ;
-				if ( server.requiredHackingSkill > ns.getHackingLevel() )  { return } ;
-        if ( runningScriptData.runningScripts.find( s => s.targetHostname === server.hostname ) ) { return };
+				if ( tServer.moneyMax === 0 ) { return } ;
+				if ( tServer.requiredHackingSkill > ns.getHackingLevel() )  { return } ;
+        if ( runningScriptData.runningScripts.find( s => s.targetHostname === tServer.hostname ) ) { return };
 
-        const hackChance = ns.hackAnalyzeChance(server.hostname)
-        const moneyPercent = server.moneyAvailable / server.moneyMax
+        const hackChance = ns.hackAnalyzeChance(tServer.hostname)
+        const moneyPercent = tServer.moneyAvailable / tServer.moneyMax
         
-        const growTime = ns.getGrowTime(server.hostname)
-        const hackTime = ns.getHackTime(server.hostname)
-        const weakenTime = ns.getWeakenTime(server.hostname)
+        const growTime = ns.getGrowTime(tServer.hostname)
+        const hackTime = ns.getHackTime(tServer.hostname)
+        const weakenTime = ns.getWeakenTime(tServer.hostname)
         
-        const hackThreads = Math.ceil(ns.hackAnalyzeThreads(server.hostname, .5*server.moneyAvailable))  
+        const hackThreads = Math.ceil(ns.hackAnalyzeThreads(tServer.hostname, .5*tServer.moneyAvailable))  
         
-        const growthMultiplier = server.moneyMax/(server.moneyAvailable+1)
+        const growthMultiplier = tServer.moneyMax/(tServer.moneyAvailable+1)
         const correctedGrowthMultiplier = growthMultiplier < 1 ? 1 : growthMultiplier
-        const growThreads = Math.ceil(ns.growthAnalyze(server.hostname, correctedGrowthMultiplier ))  
+        const growThreads = Math.ceil(ns.growthAnalyze(tServer.hostname, correctedGrowthMultiplier ))  
 
-        const weakenThreads = Math.ceil((ns.getServerSecurityLevel(server.hostname) - ns.getServerMinSecurityLevel(server.hostname)) / .05)
-
-        //ns.tprint( `autohack: ${server.hostname} hackChance: ${hackChance} moneyPercent: ${moneyPercent}`)
-
+				const securityDiff = Math.floor(ns.getServerSecurityLevel(tServer.hostname) - ns.getServerMinSecurityLevel(tServer.hostname))
+        const weakenThreads = Math.ceil(securityDiff / .05)
+				
         if (moneyPercent > .9 && hackThreads >= 1) {
-          _exec("/hacks/hack.js", "home", hackThreads, server.hostname)
+          _exec(ns, SCRIPT_PATHS.HACK, hackThreads, tServer.hostname)
         }
         
         if ( growThreads >= 1 ) {
-          _exec("/hacks/grow.js", "home", growThreads , server.hostname)
+          _exec(ns, SCRIPT_PATHS.GROW, growThreads, tServer.hostname)
         }
 
-        if ( weakenThreads >= 1 ) {
-          _exec("/hacks/weaken.js", "home", weakenThreads, server.hostname)
+        if ( securityDiff > 0 && weakenThreads >= 1 ) {
+          _exec(ns, SCRIPT_PATHS.WEAKEN, weakenThreads, tServer.hostname)
         }       
 
       })
@@ -77,3 +75,5 @@ export async function main(ns : NS) {
       await ns.sleep(1000)
     }
 }
+
+
