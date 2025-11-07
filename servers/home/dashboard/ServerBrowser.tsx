@@ -113,7 +113,7 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
             <td className="hostname-col">{server.hostname}</td>
             <td className="r">{ns.formatNumber(server.moneyAvailable,1)}</td>
             <td className="r">{ns.formatNumber(server.moneyMax,1)}</td>
-            <td className="r">{`${ns.formatNumber(server.hackDifficulty,1)}->${ns.formatNumber(server.minDifficulty,0)}`}</td>
+            <td className="r">{`${ns.formatNumber(server.hackDifficulty,0)}/${ns.formatNumber(server.minDifficulty,0)}`}</td>
             <td className="r">{ns.formatNumber(ns.getGrowTime(server.hostname)/1000,0)}s</td>
             <td className="r">{ns.formatNumber(ns.getHackTime(server.hostname)/1000,0)}s</td>
             <td	className="r">{ns.formatNumber(ns.getWeakenTime(server.hostname)/1000,0)}s</td>

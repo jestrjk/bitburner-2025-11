@@ -85,14 +85,25 @@ export async function main(ns:NS) {
 			runningScripts
     })
 		
-		runningScripts.sort((a, b) => a.targetHostname.localeCompare(b.targetHostname)).forEach( runningScript => {
-			ns.print( `[${runningScript.server}] ${runningScript.filename} thost:${runningScript.targetHostname} threads:${runningScript.threads} ram:${ns.formatRam(runningScript.ramUsageMultiThreaded)} timeLeft:${ns.formatNumber(runningScript.timeLeft/1000,0)}s` )
-		})
+		const sortByHostname = (a, b) => a.targetHostname.localeCompare(b.targetHostname)
+		const sortByTimeLeft = (a, b) => a.timeLeft - b.timeLeft
+		const filterByHackType = s => s.hackType === "hack" 
+		const filterByWeakenType = s => s.hackType === "weaken" 
+		const filterByGrowType = s => s.hackType === "grow" 
 
-    ns.print( `Scanned ${runningScripts.length} running scripts` )
-		ns.print( `Available RAM ("home"): ${ns.formatRam(ns.getServerMaxRam("home") - ns.getServerUsedRam("home"))}` )
-    ns.print( `Last updated: ${new Date().toLocaleString()}` ) 
-    ns.print( `Took ${Date.now() - startedAt}ms` )
+		const print = ( runningScript:RunningScriptExtended ) =>	
+			ns.print( `[${runningScript.server}] ${runningScript.filename} target:${runningScript.targetHostname} ` +
+				`threads:${runningScript.threads} ram:${ns.formatRam(runningScript.ramUsageMultiThreaded)} ` +
+				`timeLeft:${ns.formatNumber(runningScript.timeLeft/1000,0)}s` )
+
+		runningScripts.filter( filterByWeakenType ).sort( sortByTimeLeft ).forEach( print )
+		ns.print( "\n" )
+		runningScripts.filter( filterByGrowType ).sort( sortByTimeLeft ).forEach( print )
+		ns.print( "\n" )
+		runningScripts.filter( filterByHackType ).sort( sortByTimeLeft ).forEach( print )
+		ns.print( "\n" )
+
+    ns.print( `Scripts:${runningScripts.length} Last updated: ${new Date().toLocaleString()} (${Date.now() - startedAt}ms)` )
     await ns.sleep(500)    
   }
 }

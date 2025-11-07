@@ -27,7 +27,7 @@ export async function main(ns : NS) {
       const serverListData:ServerListData = serverListDataManager.readData()
       const runningScriptData:RunningScriptData = runningScriptDataManager.readData()
 			
-      serverListData.servers.forEach( tServer => {
+      serverListData.servers.sort( (a, b) => a.requiredHackingSkill - b.requiredHackingSkill ).forEach( tServer => {
 				
 				if ( !tServer.hasAdminRights )  { 
 					hackPorts(ns, tServer);
@@ -35,7 +35,7 @@ export async function main(ns : NS) {
 				} ;
 
 				if ( tServer.moneyMax === 0 ) { return } ;
-				if ( tServer.requiredHackingSkill > ns.getHackingLevel() )  { return } ;
+				if ( tServer.requiredHackingSkill > 20 )  { return } ;
         if ( runningScriptData.runningScripts.find( s => s.targetHostname === tServer.hostname ) ) { return };
 
         const hackChance = ns.hackAnalyzeChance(tServer.hostname)
@@ -58,7 +58,7 @@ export async function main(ns : NS) {
           _exec(ns, SCRIPT_PATHS.HACK, hackThreads, tServer.hostname)
         }
         
-        if ( growThreads >= 1 ) {
+        if ( securityDiff < 5 && growThreads >= 1 ) {
           _exec(ns, SCRIPT_PATHS.GROW, growThreads, tServer.hostname)
         }
 
