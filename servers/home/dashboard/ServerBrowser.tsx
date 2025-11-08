@@ -1,7 +1,6 @@
 import {Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
-import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from '../runtime_data_managment/runtime_data_manager';
-import { ServerListData } from '../runtime_data_polling/ServerListData';
+import { RuntimeDataManager, ServerListData } from '../runtime_data_managment/RuntimeDataManager';
 import { _exec } from '../lib/exec';
 
 let intervalId = 0;
@@ -10,21 +9,22 @@ let intervalId = 0;
 // react components with ns
 let _ns:NS; 
 
-const hackServer = (server:Server) => {
-    _exec(_ns, 'hacks/hack.js', 'home',  100 , server.hostname )
-  }
+// const hackServer = (server:Server) => {
+//     _exec(_ns, 'hacks/hack.js', 'home',  100 , server.hostname )
+//   }
 
-const growServer = (server:Server) => {
-    _exec(_ns, 'hacks/grow.js', 'home',  100 , server.hostname )
-  }
+// const growServer = (server:Server) => {
+//     _exec(_ns, 'hacks/grow.js', 'home',  100 , server.hostname )
+//   }
 
-const weakenServer = (server:Server) => {
-    _exec(_ns, 'hacks/weaken.js', 'home',  100 , server.hostname )
-  }
+// const weakenServer = (server:Server) => {
+//     _exec(_ns, 'hacks/weaken.js', 'home',  100 , server.hostname )
+//   }
 
 const sortByHostname = (a:Server, b:Server) => a.hostname.localeCompare(b.hostname);
 const sortByMoneyMax = (a:Server, b:Server) => b.moneyMax - a.moneyMax;
 const sortByMoneyAvailable = (a:Server, b:Server) => b.moneyAvailable - a.moneyAvailable;
+const sortByMaxRam = (a:Server, b:Server) => b.maxRam - a.maxRam;
 const sortByIsAdmin = (a:Server, b:Server) => { 
   const isAdmin_A = a.hasAdminRights ? 1 : 0; 
   const isAdmin_B = b.hasAdminRights ? 1 : 0; 
@@ -63,17 +63,17 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     // have to call fetchServers(sortFunction) in the header click events
     sortFunction = newSortFunction;
 
-		const dataManager = new RuntimeDataManager<ServerListData>(ns, RUNTIME_DATA_FILENAMES.SERVER_LIST)
-    let data = dataManager.readData()
+		const dataManager = new RuntimeDataManager(ns)
+    let serverData = dataManager.readServerList()
 
     if ( displayIsAdminOnlyServers ) {
-      data.servers = data.servers.filter( s => s.hasAdminRights )
+      serverData.servers = serverData.servers.filter( s => s.hasAdminRights )
     }
     if ( !displayServersWithZeroMaxMoney ) {
-      data.servers = data.servers.filter( s => s.moneyMax! > 0 )
+      serverData.servers = serverData.servers.filter( s => s.moneyMax! > 0 )
     }
-    setServerList( data.servers.sort(sortFunction) )
-    setLastUpdated( data.last_updated )
+    setServerList( serverData.servers.sort(sortFunction) )
+    setLastUpdated( serverData.last_updated )
   } 
 
   useEffect( () => {
@@ -95,6 +95,7 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     <th className="hostname-col" onClick={() => fetchServers(sortByHostname)}><b>Hostname</b></th>
     <th className="r" onClick={() => fetchServers(sortByMoneyAvailable)}><b>$</b></th>
     <th className="r" onClick={() => fetchServers(sortByMoneyMax)}><b>Max$</b></th>
+		<th className="r" onClick={() => fetchServers(sortByMaxRam)}>MRam</th>
     <th className="r" onClick={() => fetchServers(sortByHackDifficulty)}><b>Hack</b></th>
     <th className="r" onClick={() => fetchServers(sortByGrowTime)}><b>Grow</b></th>
     <th className="r" onClick={() => fetchServers(sortByHackTime)}><b>Hack</b></th>
@@ -113,23 +114,25 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
             <td className="hostname-col">{server.hostname}</td>
             <td className="r">{ns.formatNumber(server.moneyAvailable,1)}</td>
             <td className="r">{ns.formatNumber(server.moneyMax,1)}</td>
+						<td className="r">{ns.formatRam(server.maxRam,0)}</td>
             <td className="r">{`${ns.formatNumber(server.hackDifficulty,0)}/${ns.formatNumber(server.minDifficulty,0)}`}</td>
             <td className="r">{ns.formatNumber(ns.getGrowTime(server.hostname)/1000,0)}s</td>
             <td className="r">{ns.formatNumber(ns.getHackTime(server.hostname)/1000,0)}s</td>
             <td	className="r">{ns.formatNumber(ns.getWeakenTime(server.hostname)/1000,0)}s</td>
 						<td className="r">{server.requiredHackingSkill}</td>
             <td className="r">{server.hasAdminRights ? 'A' : ''}</td>
-
-            <td><button onClick={() => hackServer(server)}>Hack</button></td>
-            <td><button onClick={() => growServer(server)}>Grow</button></td>
-            <td><button onClick={() => weakenServer(server)}>Weaken</button></td>
-
+            
             </tr> )
           )}
         </tbody>
       </table>
     <div>Updated: {getLastUpdatedDateTime(lastUpdated)} ({lastUpdated})</div>
     </div> )
+
+		// <td><button onClick={() => hackServer(server)}>Hack</button></td>
+    // <td><button onClick={() => growServer(server)}>Grow</button></td>
+    // <td><button onClick={() => weakenServer(server)}>Weaken</button></td> 
+
 }
 
 function getLastUpdatedDateTime(lastUpdate:number) {

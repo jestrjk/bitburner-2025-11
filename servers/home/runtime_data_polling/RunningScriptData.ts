@@ -1,18 +1,6 @@
 import { RunningScript, Server } from "NetscriptDefinitions";
-import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from "../runtime_data_managment/runtime_data_manager";
-import { ServerListData } from "./ServerListData";
-
-export interface RunningScriptData {
-  last_updated: number,
-  runningScripts: RunningScriptExtended[]
-}
-
-export interface RunningScriptExtended extends RunningScript {
-  hackType: string,
-	targetHostname: string,
-	ramUsageMultiThreaded: number,
-	timeLeft: number
-}
+import { RuntimeDataManager, RunningScriptData, RunningScriptExtended } from "../runtime_data_managment/RuntimeDataManager";
+import { getScriptRunners } from "../runtime_data_managment/ScriptRunners";
 
 function getRunningScripts( ns:NS, scriptRunners:Server[] ) {
 
@@ -72,18 +60,15 @@ export async function main(ns:NS) {
 	ns.disableLog("getServerMaxRam")
 	ns.disableLog("getServerUsedRam")
 
-	const serverListDataManager = new RuntimeDataManager<ServerListData>(ns, RUNTIME_DATA_FILENAMES.SERVER_LIST)
-  const dataManager = new RuntimeDataManager<RunningScriptData>(ns, RUNTIME_DATA_FILENAMES.RUNNING_SCRIPTS)
-  while (true) {
+	const dataManager = new RuntimeDataManager(ns)
+
+	while (true) {
     const startedAt = Date.now()
     ns.clearLog()
 
-		const scriptRunners = serverListDataManager.readData().servers.filter( s => s.purchasedByPlayer )
+		const scriptRunners = getScriptRunners(ns)
     const runningScripts = getRunningScripts(ns, scriptRunners)
-    dataManager.writeData( {
-      last_updated: Date.now(),
-			runningScripts
-    })
+    dataManager.writeRunningScripts( { last_updated: Date.now(), running_scripts: runningScripts } )
 		
 		const sortByHostname = (a, b) => a.targetHostname.localeCompare(b.targetHostname)
 		const sortByTimeLeft = (a, b) => a.timeLeft - b.timeLeft

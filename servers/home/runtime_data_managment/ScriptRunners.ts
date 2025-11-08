@@ -1,10 +1,10 @@
 
-import { ServerListData } from "../runtime_data_polling/ServerListData";
-import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from "./runtime_data_manager";
+import { RuntimeDataManager } from "./RuntimeDataManager";
 
 export function getScriptRunners(ns:NS) {
-	const dataManager = new RuntimeDataManager<ServerListData>(ns, RUNTIME_DATA_FILENAMES.SERVER_LIST)
-	return dataManager.readData().servers.filter( s => s.purchasedByPlayer )
+		const dataManager = new RuntimeDataManager(ns)
+		const scriptRunners = dataManager.readServerList().servers.filter( s => (s.purchasedByPlayer && s.maxRam > 0) || (s.hasAdminRights && s.maxRam >= 32) )
+		return scriptRunners.sort((a, b) => b.maxRam - a.maxRam)
 }
 
 export function getBestScriptRunner(ns:NS) {

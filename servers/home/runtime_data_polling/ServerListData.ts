@@ -1,10 +1,5 @@
 import {NS, Server} from "NetscriptDefinitions";
-import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from "../runtime_data_managment/runtime_data_manager";
-
-export interface ServerListData {
-  last_updated: number,
-  servers: Server[]
-}
+import { RuntimeDataManager } from "../runtime_data_managment/RuntimeDataManager";
 
 function recursiveServerScan(ns:NS, parent_host_name:string, newServerInformationList:Server[] = [] ) {
   
@@ -31,13 +26,13 @@ export async function main(ns:NS) {
   ns.ui.openTail()
   ns.disableLog("scan")
   
-	const dataManager = new RuntimeDataManager<ServerListData>(ns, RUNTIME_DATA_FILENAMES.SERVER_LIST)
+	const dataManager = new RuntimeDataManager(ns)
   while (true) {
     const startedAt = Date.now()
     ns.clearLog()
 
     const new_server_list = recursiveServerScan(ns, 'home')
-    dataManager.writeData( {
+    dataManager.writeServerList( {
 			last_updated: Date.now(),
 			servers: new_server_list
 		})

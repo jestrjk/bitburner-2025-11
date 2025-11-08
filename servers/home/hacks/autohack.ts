@@ -1,8 +1,7 @@
-import { RuntimeDataManager, RUNTIME_DATA_FILENAMES } from "../runtime_data_managment/runtime_data_manager";
-import { ServerListData } from "../runtime_data_polling/ServerListData";
-import { RunningScriptData } from "../runtime_data_polling/RunningScriptData";
+import { RuntimeDataManager, ServerListData, RunningScriptData } from "../runtime_data_managment/RuntimeDataManager";
 import { NS, Server } from "@/NetscriptDefinitions";
 import { _exec, SCRIPT_PATHS } from "../lib/exec";
+import { getSettings } from "../runtime_data_managment/settings";
 
 let _ns:NS;
 
@@ -19,57 +18,60 @@ export async function main(ns : NS) {
     _ns = ns; // Convenience
     ns.ui.openTail();
 
-		const serverListDataManager = new RuntimeDataManager<ServerListData>(ns, RUNTIME_DATA_FILENAMES.SERVER_LIST)
-    const runningScriptDataManager = new RuntimeDataManager<RunningScriptData>(ns, RUNTIME_DATA_FILENAMES.RUNNING_SCRIPTS)
+		const dataManager = new RuntimeDataManager(ns)
 
     while (true) {
+			const settings = getSettings(ns)
 			const startTime = Date.now()
-      const serverListData:ServerListData = serverListDataManager.readData()
-      const runningScriptData:RunningScriptData = runningScriptDataManager.readData()
+      const serverListData:ServerListData = dataManager.readServerList()
+      const runningScriptData:RunningScriptData = dataManager.readRunningScripts()
 			
-      serverListData.servers.sort( (a, b) => a.requiredHackingSkill - b.requiredHackingSkill ).forEach( tServer => {
+      serverListData.servers.sort( (a, b) => a.requiredHackingSkill - b.requiredHackingSkill ).forEach( targetServer => {
 				
-				if ( !tServer.hasAdminRights )  { 
-					hackPorts(ns, tServer);
+				if ( !targetServer.hasAdminRights )  { 
+					hackPorts(ns, targetServer);
 					return
 				} ;
 
-				if ( tServer.moneyMax === 0 ) { return } ;
-				if ( tServer.requiredHackingSkill > 20 )  { return } ;
-        if ( runningScriptData.runningScripts.find( s => s.targetHostname === tServer.hostname ) ) { return };
+				if ( targetServer.moneyMax === 0 ) { return } ;
+				if ( targetServer.requiredHackingSkill > settings.maxHackLevel )  { return } ;
+        // Do this to prevent double hacking. But lets move it to the actions so that we can be smarter about it.
+				// if ( runningScriptData.runningScripts.find( script => script.targetHostname === targetServer.hostname ) ) { return };
 
-        const hackChance = ns.hackAnalyzeChance(tServer.hostname)
-        const moneyPercent = tServer.moneyAvailable / tServer.moneyMax
+        const hackChance = ns.hackAnalyzeChance(targetServer.hostname)
+        const moneyPercent = targetServer.moneyAvailable / targetServer.moneyMax
         
-        const growTime = ns.getGrowTime(tServer.hostname)
-        const hackTime = ns.getHackTime(tServer.hostname)
-        const weakenTime = ns.getWeakenTime(tServer.hostname)
+        const growTime = ns.getGrowTime(targetServer.hostname)
+        const hackTime = ns.getHackTime(targetServer.hostname)
+        const weakenTime = ns.getWeakenTime(targetServer.hostname)
         
-        const hackThreads = Math.ceil(ns.hackAnalyzeThreads(tServer.hostname, .5*tServer.moneyAvailable))  
+        const hackThreads = Math.ceil(ns.hackAnalyzeThreads(targetServer.hostname, .5*targetServer.moneyAvailable))  
         
-        const growthMultiplier = tServer.moneyMax/(tServer.moneyAvailable+1)
+        const growthMultiplier = targetServer.moneyMax/(targetServer.moneyAvailable+1)
         const correctedGrowthMultiplier = growthMultiplier < 1 ? 1 : growthMultiplier
-        const growThreads = Math.ceil(ns.growthAnalyze(tServer.hostname, correctedGrowthMultiplier ))  
+        const growThreads = Math.ceil(ns.growthAnalyze(targetServer.hostname, correctedGrowthMultiplier ))  
 
-				const securityDiff = Math.floor(ns.getServerSecurityLevel(tServer.hostname) - ns.getServerMinSecurityLevel(tServer.hostname))
+				const securityDiff = Math.floor(ns.getServerSecurityLevel(targetServer.hostname) - ns.getServerMinSecurityLevel(targetServer.hostname))
         const weakenThreads = Math.ceil(securityDiff / .05)
 				
-        if (moneyPercent > .9 && hackThreads >= 1) {
-          _exec(ns, SCRIPT_PATHS.HACK, hackThreads, tServer.hostname)
+				const scriptsTargetingOurCurrentTarget = runningScriptData.running_scripts.filter( s => s.targetHostname === targetServer.hostname )
+
+        if (moneyPercent > .9 && hackThreads >= 1 && !scriptsTargetingOurCurrentTarget.find( s => s.hackType === "hack" ) ) {
+          _exec(ns, SCRIPT_PATHS.HACK, hackThreads, targetServer.hostname)
         }
         
-        if ( securityDiff < 5 && growThreads >= 1 ) {
-          _exec(ns, SCRIPT_PATHS.GROW, growThreads, tServer.hostname)
+        if ( securityDiff < 5 && growThreads >= 1 && !scriptsTargetingOurCurrentTarget.find( s => s.hackType === "grow" ) ) {
+          _exec(ns, SCRIPT_PATHS.GROW, growThreads, targetServer.hostname)
         }
 
-        if ( securityDiff > 0 && weakenThreads >= 1 ) {
-          _exec(ns, SCRIPT_PATHS.WEAKEN, weakenThreads, tServer.hostname)
+        if ( securityDiff > 0 && weakenThreads >= 1 && !scriptsTargetingOurCurrentTarget.find( s => s.hackType == "weaken" ) ) {
+          _exec(ns, SCRIPT_PATHS.WEAKEN, weakenThreads, targetServer.hostname)
         }       
 
       })
 
       ns.clearLog()
-      ns.print( `Hacking Script #: ${runningScriptData.runningScripts.length}`)
+      ns.print( `Hacking Script #: ${runningScriptData.running_scripts.length}`)
       ns.print( `Updated: ${new Date().toLocaleString()}`)
 			ns.print( `Took: ${Date.now() - startTime}ms`)
       await ns.sleep(1000)
