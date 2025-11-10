@@ -7,7 +7,8 @@ const SCRIPT_NAMES = [
 	"MemoryDials",
 	"share_manager",
 	"raise_hacking",
-	"autohack"
+	"autohack",
+	"ControlPanel"
 ]
 
 export function saveWindowProperties(ns:NS) {

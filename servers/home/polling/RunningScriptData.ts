@@ -57,6 +57,7 @@ export async function main(ns:NS) {
   
   ns.ui.openTail()
   ns.disableLog("ps")
+	ns.disableLog("sleep")
 	ns.disableLog("getServerMaxRam")
 	ns.disableLog("getServerUsedRam")
 
