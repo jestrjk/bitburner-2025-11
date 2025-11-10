@@ -1,5 +1,5 @@
 import {NS, Server} from "NetscriptDefinitions";
-import { RuntimeDataManager } from "../runtime_data_managment/RuntimeDataManager";
+import { RuntimeDataManager } from "../polling/RuntimeDataManager";
 
 function recursiveServerScan(ns:NS, parent_host_name:string, newServerInformationList:Server[] = [] ) {
   
@@ -25,7 +25,7 @@ export async function main(ns:NS) {
   
   ns.ui.openTail()
   ns.disableLog("scan")
-  
+
 	const dataManager = new RuntimeDataManager(ns)
   while (true) {
     const startedAt = Date.now()
@@ -37,9 +37,7 @@ export async function main(ns:NS) {
 			servers: new_server_list
 		})
   
-    ns.print( `Scanned ${new_server_list.length} servers` )
-    ns.print( `Last updated: ${new Date().toLocaleString()}` ) 
-    ns.print( `Took ${Date.now() - startedAt}ms` )
+    ns.print( `#Servers: ${new_server_list.length} Updated: ${new Date().toLocaleString()} (${Date.now() - startedAt}ms)` )
     await ns.sleep(500)    
   }
 }

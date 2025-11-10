@@ -1,17 +1,18 @@
 import {Server, RunningScript} from "NetscriptDefinitions"
 
+export interface WINDOW_PROPERTIES {
+	script_name: String,
+	position: [number, number],
+	size: [number, number]
+}
+
 enum DATA_FILENAMES {
-  SERVER_LIST = "runtime_data/server_list.json",
+	SERVER_LIST = "runtime_data/server_list.json",
 	RUNNING_SCRIPTS = "runtime_data/running_scripts.json",
 	MONEY_OVER_TIME = "runtime_data/money_over_time.json",
-	SETTINGS = "runtime_data/settings.json"
+	SETTINGS = "runtime_data/settings.json",
+	UI_WINDOWS = "runtime_data/ui_windows.json"
 }
-export const runtimeDataFileNames = [
-	DATA_FILENAMES.SERVER_LIST,
-	DATA_FILENAMES.RUNNING_SCRIPTS,
-	DATA_FILENAMES.MONEY_OVER_TIME,
-	DATA_FILENAMES.SETTINGS
-]
 
 export interface ServerListData {
 	last_updated: number,
@@ -94,6 +95,18 @@ export class RuntimeDataManager {
 
 	public writeSettings( data:Settings ) {
 		this.ns.write(DATA_FILENAMES.SETTINGS, JSON.stringify(data), "w")
+	}
+
+	public readUiWindowProperties() {
+		try {
+			return JSON.parse( this.ns.read(DATA_FILENAMES.UI_WINDOWS) ) as WINDOW_PROPERTIES[]
+		} catch ( e ) {
+			return [] as unknown as WINDOW_PROPERTIES[]
+		}
+	}
+
+	public writeUiWindowProperties( data:WINDOW_PROPERTIES[] ) {
+		this.ns.write(DATA_FILENAMES.UI_WINDOWS, JSON.stringify(data), "w")
 	}
 }
 

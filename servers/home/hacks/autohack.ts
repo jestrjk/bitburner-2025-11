@@ -1,7 +1,7 @@
-import { RuntimeDataManager, ServerListData, RunningScriptData } from "../runtime_data_managment/RuntimeDataManager";
+import { RuntimeDataManager, ServerListData, RunningScriptData } from "../polling/RuntimeDataManager";
 import { NS, Server } from "@/NetscriptDefinitions";
 import { _exec, SCRIPT_PATHS } from "../lib/exec";
-import { getSettings } from "../runtime_data_managment/settings";
+import { getSettings } from "../settings/settings";
 
 let _ns:NS;
 
@@ -17,6 +17,9 @@ function hackPorts(ns: NS, tServer: Server) {
 export async function main(ns : NS) {
     _ns = ns; // Convenience
     ns.ui.openTail();
+		
+		const sx = 500
+		const sy = 110
 
 		const dataManager = new RuntimeDataManager(ns)
 
@@ -71,9 +74,7 @@ export async function main(ns : NS) {
       })
 
       ns.clearLog()
-      ns.print( `Hacking Script #: ${runningScriptData.running_scripts.length}`)
-      ns.print( `Updated: ${new Date().toLocaleString()}`)
-			ns.print( `Took: ${Date.now() - startTime}ms`)
+      ns.print( `#Scripts: ${runningScriptData.running_scripts.length} Updated: ${new Date().toLocaleString()} (${Date.now() - startTime}ms)`)
       await ns.sleep(1000)
     }
 }

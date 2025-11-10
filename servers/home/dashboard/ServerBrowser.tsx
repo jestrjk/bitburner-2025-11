@@ -1,6 +1,6 @@
 import {Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
-import { RuntimeDataManager, ServerListData } from '../runtime_data_managment/RuntimeDataManager';
+import { RuntimeDataManager, ServerListData } from '../polling/RuntimeDataManager';
 import { _exec } from '../lib/exec';
 
 let intervalId = 0;
@@ -74,15 +74,16 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     }
     setServerList( serverData.servers.sort(sortFunction) )
     setLastUpdated( serverData.last_updated )
-  } 
+  }
 
   useEffect( () => {
     
     fetchServers(sortFunction)
     intervalId = setInterval(() => fetchServers(sortFunction), 500);
+    _ns.tprint(`Interval ID: ${intervalId}`)
 
     return () => clearInterval(intervalId);
-  }, [ns, displayIsAdminOnlyServers, displayServersWithZeroMaxMoney]);
+  }, [displayIsAdminOnlyServers, displayServersWithZeroMaxMoney]);
 
   let filterControls = <div>
     <button className={`btn ${displayIsAdminOnlyServers ? 'active' : ''}`} 
@@ -159,6 +160,7 @@ export async function main(ns: NS) {
   ns.printRaw( <ServerBrowser ns={ns} />);
   
   ns.atExit( () => {
+		ns.tprint( `Exiting: clearing ${intervalId}`)
     clearInterval(intervalId)
   })
 

@@ -1,4 +1,4 @@
-import { PORT_LIST } from "../runtime_data_managment/portManager"
+import { PORT_LIST } from "../settings/portManager"
 
 export interface DiscreteMoneyData {
 	last_updated: number,

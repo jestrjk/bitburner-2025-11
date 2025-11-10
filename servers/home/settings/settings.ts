@@ -1,4 +1,4 @@
-import { RuntimeDataManager } from "./RuntimeDataManager";
+import { RuntimeDataManager } from "../polling/RuntimeDataManager";
 
 interface Settings {
 	maxHackLevel: number

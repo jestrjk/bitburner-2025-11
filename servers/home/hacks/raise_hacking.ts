@@ -1,19 +1,24 @@
+
 export async function main(ns:NS) {
 	ns.ui.openTail()
 	ns.ui.moveTail( 400, 400 )
 
+	let hostname = ns.args[0] as string
+
 	while(true) {
+		ns.disableLog("sleep")
 		ns.clearLog()
 		
 		let hackingSkill = ns.getHackingLevel()
 		ns.print( `Hacking Skill: ${hackingSkill}`)
 		
 		let weakenRamUsage = ns.getScriptRam("hacks/weaken.js")
-		let availableRam = ns.getServerMaxRam("home") - ns.getServerUsedRam("home")
+		let availableRam = ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)
 		let threads = Math.floor((availableRam/2) / weakenRamUsage)
 		
 		if ( threads > 0 ) {
-			ns.exec("hacks/weaken.js", "home", threads, "n00dles")
+			ns.print( `${Date.now().toLocaleString()} (${Date.now()})`)
+			ns.exec("hacks/weaken.js", hostname, threads, "n00dles")
 		}
 
 		await ns.sleep(ns.getWeakenTime("n00dles"))
@@ -23,6 +28,6 @@ export async function main(ns:NS) {
 			ns.ui.closeTail()
 			ns.exit()
 		}
-		await ns.sleep(500)
+		await ns.sleep(1000)
 	}
 }

@@ -1,9 +1,9 @@
 import { RunningScript, Server } from "NetscriptDefinitions";
-import { RuntimeDataManager, RunningScriptData, RunningScriptExtended } from "../runtime_data_managment/RuntimeDataManager";
-import { getScriptRunners } from "../runtime_data_managment/ScriptRunners";
+import { RuntimeDataManager, RunningScriptData, RunningScriptExtended } from "../polling/RuntimeDataManager";
+import { getScriptRunners } from "../polling/ScriptRunners";
 
 function getRunningScripts( ns:NS, scriptRunners:Server[] ) {
-
+	
   const runningScripts:RunningScriptExtended[] = [];
 
   scriptRunners.forEach( hostServer => {
@@ -77,7 +77,7 @@ export async function main(ns:NS) {
 		const filterByGrowType = s => s.hackType === "grow" 
 
 		const print = ( runningScript:RunningScriptExtended ) =>	
-			ns.print( `[${runningScript.server}] ${runningScript.filename} target:${runningScript.targetHostname} ` +
+			ns.print( `[${runningScript.server}] ${runningScript.hackType}(${runningScript.pid}) target:${runningScript.targetHostname} ` +
 				`threads:${runningScript.threads} ram:${ns.formatRam(runningScript.ramUsageMultiThreaded)} ` +
 				`timeLeft:${ns.formatNumber(runningScript.timeLeft/1000,0)}s` )
 
