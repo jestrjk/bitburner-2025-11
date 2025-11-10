@@ -1,7 +1,6 @@
 
 export async function main(ns:NS) {
 	ns.ui.openTail()
-	ns.ui.moveTail( 400, 400 )
 
 	let hostname = ns.args[0] as string
 
