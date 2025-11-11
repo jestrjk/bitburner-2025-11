@@ -3,8 +3,9 @@ import { RuntimeDataManager } from "./RuntimeDataManager";
 
 export function getScriptRunners(ns:NS) {
 		const dataManager = new RuntimeDataManager(ns)
-		const scriptRunners = dataManager.readServerList().servers.filter( s => (s.purchasedByPlayer && s.maxRam > 0) || (s.hasAdminRights && s.maxRam >= 32) )
-		return scriptRunners.sort((a, b) => b.maxRam - a.maxRam)
+		const serverLists = dataManager.readServerList()
+		const scriptRunners = serverLists.servers.filter( s=> s.hasAdminRights ).concat(serverLists.standard_player_purchased_servers)
+		return scriptRunners
 }
 
 export function getBestScriptRunner(ns:NS) {

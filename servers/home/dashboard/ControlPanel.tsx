@@ -5,8 +5,11 @@ import { RuntimeDataManager } from "../polling/RuntimeDataManager"
 let _ns:NS
 export async function main(ns:NS) {
 	_ns = ns
+	
 	ns.disableLog("disableLog")
 	ns.disableLog("asleep")
+	ns.disableLog("run")
+
 	ns.ui.openTail()
 	ns.clearLog()
 
@@ -58,26 +61,27 @@ export function ControlPanel() {
 		<div>
 			<h2>Control Panel</h2>
 			
-			<table>
-				<tr>
-					<td className="form-label"><label htmlFor="resetWindowsBtn">Reset Windows:</label></td>
-					<td><button className="btn btn-outline-success" id="resetWindowsBtn"onClick={resetWindows}>Reset Windows</button></td>
-				</tr>	
-				<tr>
-					<td className="form-label"><label htmlFor="saveWindowsBtn">Save Windows:</label></td>
-					<td><button className="btn btn-outline-success" id="saveWindowsBtn" onClick={saveWindows}>Save Window Properties</button></td>
-				</tr>
-				<tr>
-					<td><label className="form-label" htmlFor="maxHackLevelInput">Max Hack Level:</label></td>
-					<td>
-						<span  style={{fontSize: "1.8em", padding:".5em"}}>{maxHackLevel}</span>
-						<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel-10)}>-10</button>
-						<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel+10)}>+10</button>
-						<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel-100)}> -100</button>
-						<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel+100)}> +100</button>
-					</td>
-				</tr>
-			</table>			
+				<div style={{padding:".5em"}}>
+					<button className="btn btn-outline-success" id="resetWindowsBtn"onClick={resetWindows}>Reset Windows</button>
+					<button className="btn btn-outline-success" id="saveWindowsBtn" onClick={saveWindows}>Save Window Properties</button>
+				</div>
+
+				<div style={{fontSize: "1.5em", padding:".5em"}}>MaxLevelHacking:{maxHackLevel}</div>
+				<div style={{padding:".5em"}}>
+					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel-10)}>-10</button>
+					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel+10)}>+10</button>
+					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel-100)}> -100</button>
+					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel+100)}> +100</button>
+				</div>
+				<div style={{padding:".5em"}}>
+					<button className="btn btn-outline-success" onClick={() => _ns.run("faction/share_manager.js")}>Run Share Manager</button>
+					<button className="btn btn-outline-success" onClick={() => _ns.run("hacks/raise_hacking.js",1,"home-2")}>Run Raise Hacking</button>
+
+					<button className="btn btn-outline-success" onClick={() => _ns.run("singularity/purchase_darkweb_programs.js")}>Run Purchase Dark Web Programs</button>
+					<button className="btn btn-outline-success" onClick={() => _ns.run("singularity/backdoor_all_servers.js")}>Run Backdoor All Servers</button>
+
+					<button className="btn btn-outline-success" onClick={() => _ns.run("improvements/improve_purchased_servers.js")}>Improve Purchased Servers</button>
+				</div>
 
 		</div>
 	)

@@ -2,6 +2,7 @@ import {Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
 import { RuntimeDataManager, ServerListData } from '../polling/RuntimeDataManager';
 import { _exec } from '../lib/exec';
+import { getBestScriptRunner } from "../polling/ScriptRunners";
 
 let intervalId = 0;
 
@@ -20,6 +21,17 @@ let _ns:NS;
 // const weakenServer = (server:Server) => {
 //     _exec(_ns, 'hacks/weaken.js', 'home',  100 , server.hostname )
 //   }
+
+const backdoorServer = (server:Server) => {
+	try{
+		const originalHost = _ns.getHostname()
+		const pid = _ns.exec( 'singularity/backdoor_server.js', getBestScriptRunner(_ns).hostname, 1 , server.hostname, originalHost )
+		_ns.tprint( `ServerBrowser: exec backdoor_server.js(${pid})`)
+	}
+	catch(e){
+		_ns.tprint(`ServerBrowser: exec backdoor_server.js failed:\n${e}`)
+	}
+}
 
 const sortByHostname = (a:Server, b:Server) => a.hostname.localeCompare(b.hostname);
 const sortByMoneyMax = (a:Server, b:Server) => b.moneyMax - a.moneyMax;
@@ -54,8 +66,7 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
   const [serverList, setServerList] = useState<Server[]>([]);
   const [lastUpdated, setLastUpdated] = useState(Date.now());
   const [displayIsAdminOnlyServers, setDisplayIsAdminServers] = useState(true);
-  const [displayServersWithZeroMaxMoney, setDisplayServersWithZeroMaxMoney] = useState(false);
-  
+  const [standardPlayerPurchasedServersSwitch, setStandardPlayerPurchasedServersSwitch] = useState(false);
   
   const fetchServers = ( newSortFunction:(a:Server, b:Server) => number ) => {
     // Theres got to be a better way to do this. Maybe not.
@@ -69,10 +80,12 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     if ( displayIsAdminOnlyServers ) {
       serverData.servers = serverData.servers.filter( s => s.hasAdminRights )
     }
-    if ( !displayServersWithZeroMaxMoney ) {
-      serverData.servers = serverData.servers.filter( s => s.moneyMax! > 0 )
-    }
-    setServerList( serverData.servers.sort(sortFunction) )
+
+		if ( standardPlayerPurchasedServersSwitch ) {
+			setServerList(serverData.standard_player_purchased_servers.sort(sortFunction))
+		} else {
+			setServerList( serverData.servers.sort(sortFunction) )
+		}
     setLastUpdated( serverData.last_updated )
   }
 
@@ -83,13 +96,13 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     _ns.tprint(`Interval ID: ${intervalId}`)
 
     return () => clearInterval(intervalId);
-  }, [displayIsAdminOnlyServers, displayServersWithZeroMaxMoney]);
+  }, [displayIsAdminOnlyServers, standardPlayerPurchasedServersSwitch]);
 
   let filterControls = <div>
-    <button className={`btn ${displayIsAdminOnlyServers ? 'active' : ''}`} 
+    <button className={`btn btn-outline-success ${displayIsAdminOnlyServers ? 'active' : ''}`} 
       onClick={() => setDisplayIsAdminServers(!displayIsAdminOnlyServers)}>IsAdmin?</button>
-    <button className={`btn ${displayServersWithZeroMaxMoney ? 'active' : ''}`} 
-      onClick={() => setDisplayServersWithZeroMaxMoney(!displayServersWithZeroMaxMoney)}>Zero Max Money</button>
+    <button className={`btn btn-outline-success ${standardPlayerPurchasedServersSwitch ? 'active' : ''}`} 
+      onClick={() => setStandardPlayerPurchasedServersSwitch(!standardPlayerPurchasedServersSwitch)}>Player Purchased Servers</button>
   </div>;
 
   let sortHeader = ( <tr>
@@ -98,11 +111,10 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     <th className="r" onClick={() => fetchServers(sortByMoneyMax)}><b>Max$</b></th>
 		<th className="r" onClick={() => fetchServers(sortByMaxRam)}>MRam</th>
     <th className="r" onClick={() => fetchServers(sortByHackDifficulty)}><b>Hack</b></th>
-    <th className="r" onClick={() => fetchServers(sortByGrowTime)}><b>Grow</b></th>
-    <th className="r" onClick={() => fetchServers(sortByHackTime)}><b>Hack</b></th>
-    <th className="r" onClick={() => fetchServers(sortByWeakenTime)}><b>Weaken</b></th>
+    <th className="r" onClick={() => fetchServers(sortByWeakenTime)}><b>Weak</b></th>
+		<th className="r" onClick={() => fetchServers(sortByGrowTime)}><b>Grow</b></th>
+		<th className="r" onClick={() => fetchServers(sortByHackTime)}><b>Hack</b></th>
 		<th className="r" onClick={() => fetchServers(sortByRequiredHackingSkill)}><b>Req Hack</b></th>
-		<th className="r" onClick={() => fetchServers(sortByIsAdmin)}><b>Admin</b></th>
   </tr> );
   
   return ( <div>
@@ -111,20 +123,29 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
       <table>
         <thead>{sortHeader}</thead>
         <tbody> 
-          {serverList.map(server => ( <tr>
-            <td className="hostname-col">{server.hostname}</td>
-            <td className="r">{ns.formatNumber(server.moneyAvailable,1)}</td>
-            <td className="r">{ns.formatNumber(server.moneyMax,1)}</td>
-						<td className="r">{ns.formatRam(server.maxRam,0)}</td>
-            <td className="r">{`${ns.formatNumber(server.hackDifficulty,0)}/${ns.formatNumber(server.minDifficulty,0)}`}</td>
-            <td className="r">{ns.formatNumber(ns.getGrowTime(server.hostname)/1000,0)}s</td>
-            <td className="r">{ns.formatNumber(ns.getHackTime(server.hostname)/1000,0)}s</td>
-            <td	className="r">{ns.formatNumber(ns.getWeakenTime(server.hostname)/1000,0)}s</td>
-						<td className="r">{server.requiredHackingSkill}</td>
-            <td className="r">{server.hasAdminRights ? 'A' : ''}</td>
-            
-            </tr> )
-          )}
+          {
+						serverList.map(server => {
+
+							server.moneyAvailable = server.moneyAvailable || _ns.hacknet.numHashes()
+							server.moneyMax = server.moneyMax || _ns.hacknet.hashCapacity()
+							
+							// ns.tprint( `ServerBrowser: ${server.hostname} Money: ${server.moneyAvailable} ${server.moneyMax}` )
+
+							return ( <tr>
+								<td className={`hostname-col ${server.hasAdminRights ? (server.backdoorInstalled ? 'text-info' : '' ) : 'text-secondary' }`} 
+									title={`${server.hasAdminRights ? 'Admin' : ''} ${server.backdoorInstalled ? 'Backdoor' : ''}`}>{server.hostname}</td>
+								<td className="r">{ns.formatNumber(server.moneyAvailable,1)}</td>
+								<td className="r">{ns.formatNumber(server.moneyMax,1)}</td>
+								<td className="r">{ns.formatRam(server.maxRam,0)}</td>
+								<td className="r">{`${ns.formatNumber(server.hackDifficulty,0)}/${ns.formatNumber(server.minDifficulty,0)}`}</td>
+								<td	className="r" style={{paddingLeft:".5em"}}>{ns.formatNumber(ns.getWeakenTime(server.hostname)/1000,0)}s</td>
+								<td className="r" >{ns.formatNumber(ns.getGrowTime(server.hostname)/1000,0)}s</td>
+								<td className="r" style={{paddingRight:".5em"}}>{ns.formatNumber(ns.getHackTime(server.hostname)/1000,0)}s</td>
+								<td className="r">{server.requiredHackingSkill}</td>
+								<td className="r"><button className="btn btn-outline-success btn-sm" onClick={() => backdoorServer(server)} disabled={server.backdoorInstalled}>Backdoor</button></td>
+							</tr> )
+					})
+				}
         </tbody>
       </table>
     <div>Updated: {getLastUpdatedDateTime(lastUpdated)} ({lastUpdated})</div>

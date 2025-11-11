@@ -1,32 +1,35 @@
 
 export async function main(ns:NS) {
 	ns.ui.openTail()
+	ns.clearLog()
 
 	let hostname = ns.args[0] as string
+	ns.scp("hacks/weaken.js", hostname)
 
 	while(true) {
+		const startedAt = Date.now()
 		ns.disableLog("sleep")
+		ns.disableLog("getHackingLevel")
+		ns.disableLog("getWeakenTime")
+		ns.disableLog("getServerMaxRam")
+		ns.disableLog("getServerUsedRam")
+		ns.disableLog("getScriptRam")
+		ns.disableLog("exec")
 		ns.clearLog()
 		
 		let hackingSkill = ns.getHackingLevel()
 		ns.print( `Hacking Skill: ${hackingSkill}`)
-		
+				
 		let weakenRamUsage = ns.getScriptRam("hacks/weaken.js")
 		let availableRam = ns.getServerMaxRam(hostname) - ns.getServerUsedRam(hostname)
 		let threads = Math.floor((availableRam/2) / weakenRamUsage)
 		
 		if ( threads > 0 ) {
-			ns.print( `${Date.now().toLocaleString()} (${Date.now()})`)
-			ns.exec("hacks/weaken.js", hostname, threads, "n00dles")
+			let pid = ns.exec("hacks/weaken.js", hostname, threads, "n00dles")
+			ns.print(`(${pid}) exec_share.js -t ${threads} ${hostname} (${ns.formatRam(weakenRamUsage*threads)}) `)
+			ns.print( `Updated:${new Date().toLocaleString()} (${Date.now()-startedAt}ms)`)
 		}
-
-		await ns.sleep(ns.getWeakenTime("n00dles"))
 		
-		if ( hackingSkill >= 3000 ) {
-			ns.print( `Finished`)
-			ns.ui.closeTail()
-			ns.exit()
-		}
-		await ns.sleep(1000)
+		await ns.sleep(ns.getWeakenTime("n00dles"))
 	}
 }

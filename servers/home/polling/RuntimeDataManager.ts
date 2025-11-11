@@ -3,7 +3,8 @@ import {Server, RunningScript} from "NetscriptDefinitions"
 export interface WINDOW_PROPERTIES {
 	script_name: String,
 	position: [number, number],
-	size: [number, number]
+	size: [number, number],
+	updated: string
 }
 
 enum DATA_FILENAMES {
@@ -16,7 +17,9 @@ enum DATA_FILENAMES {
 
 export interface ServerListData {
 	last_updated: number,
-	servers: Server[]
+	servers: Server[],
+	hacknet_servers: Server[],
+	standard_player_purchased_servers: Server[],
 }
 
 export interface RunningScriptData {

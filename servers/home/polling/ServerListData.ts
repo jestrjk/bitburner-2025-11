@@ -1,29 +1,28 @@
 import {NS, Server} from "NetscriptDefinitions";
 import { RuntimeDataManager } from "../polling/RuntimeDataManager";
 
-function recursiveServerScan(ns:NS, parent_host_name:string, newServerInformationList:Server[] = [] ) {
+function recursiveServerScan(ns:NS, parent_host_name:string, newServerInfoList:Server[] = [] ) {
   
-  let new_server_names = ns.scan( parent_host_name )
+  let newServerNames = ns.scan( parent_host_name )
   
-  for ( let new_server_name of new_server_names ) {
-    if ( newServerInformationList.find( s=>s.hostname === new_server_name ) ) {
+  for ( let newServerName of newServerNames ) {
+    if ( newServerInfoList.find( s=>s.hostname === newServerName ) ) {
       continue;
     } else {
-      newServerInformationList.push( ns.getServer( new_server_name ) )
+			newServerInfoList.push( ns.getServer( newServerName ) )
+      
       // The new server list is passed by reference, and the contents of the array mutated.
       // You, personally, may not like this pattern. If you don't like it, you can fix it by getting bent.
-      recursiveServerScan( ns, new_server_name, newServerInformationList ) 
+      recursiveServerScan( ns, newServerName, newServerInfoList ) 
     }
   }
 
-  return newServerInformationList
+  return newServerInfoList
 }
 
 export async function main(ns:NS) {
-  ns.tprint( `Starting ServerInformationList at ${Date.now()}`)
-  ns.tprint( `Removing old server lists` )
-  
   ns.ui.openTail()
+	ns.disableLog("sleep")
   ns.disableLog("scan")
 
 	const dataManager = new RuntimeDataManager(ns)
@@ -34,7 +33,9 @@ export async function main(ns:NS) {
     const new_server_list = recursiveServerScan(ns, 'home')
     dataManager.writeServerList( {
 			last_updated: Date.now(),
-			servers: new_server_list
+			servers: 									new_server_list.filter( s=> !s.purchasedByPlayer ),
+			hacknet_servers: 					new_server_list.filter( s=> s.purchasedByPlayer && s.hostname.startsWith("hacknet")),
+			standard_player_purchased_servers: 	new_server_list.filter( s=> s.purchasedByPlayer && !s.hostname.startsWith("hacknet")),
 		})
   
     ns.print( `#Servers: ${new_server_list.length} Updated: ${new Date().toLocaleString()} (${Date.now() - startedAt}ms)` )

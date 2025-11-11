@@ -17,10 +17,10 @@ function hackPorts(ns: NS, tServer: Server) {
 export async function main(ns : NS) {
     _ns = ns; // Convenience
     ns.ui.openTail();
-		
-		const sx = 500
-		const sy = 110
+		ns.disableLog("sleep")
 
+		const hostnamesOverride = ns.args as string[]
+		const debug = (hostnamesOverride.length > 0)
 		const dataManager = new RuntimeDataManager(ns)
 
     while (true) {
@@ -29,7 +29,13 @@ export async function main(ns : NS) {
       const serverListData:ServerListData = dataManager.readServerList()
       const runningScriptData:RunningScriptData = dataManager.readRunningScripts()
 			
-      serverListData.servers.sort( (a, b) => a.requiredHackingSkill - b.requiredHackingSkill ).forEach( targetServer => {
+			let serversToHack = serverListData.servers
+			if ( hostnamesOverride.length > 0 ) {
+				serversToHack = hostnamesOverride.map( hostname => ns.getServer(hostname) )
+			}
+
+			serversToHack.sort( (a, b) => a.requiredHackingSkill - b.requiredHackingSkill )
+      serversToHack.forEach( targetServer => {
 				
 				if ( !targetServer.hasAdminRights )  { 
 					hackPorts(ns, targetServer);
@@ -38,6 +44,7 @@ export async function main(ns : NS) {
 
 				if ( targetServer.moneyMax === 0 ) { return } ;
 				if ( targetServer.requiredHackingSkill > settings.maxHackLevel )  { return } ;
+				/// TODO: Maybe remove this?
         // Do this to prevent double hacking. But lets move it to the actions so that we can be smarter about it.
 				// if ( runningScriptData.runningScripts.find( script => script.targetHostname === targetServer.hostname ) ) { return };
 
@@ -48,9 +55,13 @@ export async function main(ns : NS) {
         const hackTime = ns.getHackTime(targetServer.hostname)
         const weakenTime = ns.getWeakenTime(targetServer.hostname)
         
-        const hackThreads = Math.ceil(ns.hackAnalyzeThreads(targetServer.hostname, .5*targetServer.moneyAvailable))  
-        
-        const growthMultiplier = targetServer.moneyMax/(targetServer.moneyAvailable+1)
+				// In Bitnode 9 Hacktocracy, this can return NaN
+				// ns.tprint( `AutoHack: ${targetServer.hostname} ${targetServer.moneyAvailable}` )
+
+				let analyzeThreads = ns.hackAnalyzeThreads(targetServer.hostname, .5*targetServer.moneyAvailable)
+				const hackThreads = Math.ceil( analyzeThreads )  
+
+				const growthMultiplier = targetServer.moneyMax/(targetServer.moneyAvailable+1)
         const correctedGrowthMultiplier = growthMultiplier < 1 ? 1 : growthMultiplier
         const growThreads = Math.ceil(ns.growthAnalyze(targetServer.hostname, correctedGrowthMultiplier ))  
 
@@ -58,6 +69,11 @@ export async function main(ns : NS) {
         const weakenThreads = Math.ceil(securityDiff / .05)
 				
 				const scriptsTargetingOurCurrentTarget = runningScriptData.running_scripts.filter( s => s.targetHostname === targetServer.hostname )
+
+				if ( debug ) {
+					ns.tprint(`AutoHack: ${targetServer.hostname} $${ns.formatNumber(targetServer.moneyAvailable)}/${ns.formatNumber(targetServer.moneyMax)} (${moneyPercent}) |` +
+					`hackThreads: ${hackThreads} growThreads: ${growThreads} weakenThreads: ${weakenThreads} | securityDiff: ${securityDiff} Targeting: ${scriptsTargetingOurCurrentTarget.length}`)
+				}
 
         if (moneyPercent > .9 && hackThreads >= 1 && !scriptsTargetingOurCurrentTarget.find( s => s.hackType === "hack" ) ) {
           _exec(ns, SCRIPT_PATHS.HACK, hackThreads, targetServer.hostname)
@@ -79,4 +95,10 @@ export async function main(ns : NS) {
     }
 }
 
+export function autocomplete(data:any, args:any) {
+  let results = []
+  if ( data.servers ) results.push( ...data.servers )
+  if ( data.scripts ) results.push( ...data.scripts )
 
+  return results
+}

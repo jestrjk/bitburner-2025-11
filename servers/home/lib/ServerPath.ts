@@ -1,20 +1,20 @@
+
+
 export class ServerPath {
-  constructor(ns:NS,start_node_name:string, target_node_name: string) {
-    this._ns = ns
-    this._start_node_name = start_node_name
-    this._target_node_name = target_node_name
-
-    this._ns.disableLog("scan")
-    if(!this.findPath( start_node_name )) {
-      ns.print(`Could not find Path`)
-    }
-  }
-
-  private _ns:NS
-  private _target_node_name:string
-  private _start_node_name:string
   private _path: string[] = []
   private _already_visited_names: string[] = []
+	
+	constructor(readonly ns:NS, readonly target_node_name:string, private start_node_name?:string ) {
+    this.ns = ns
+
+		this.start_node_name = start_node_name ?? this.ns.getHostname()
+
+		this.ns.disableLog("scan")
+    if(!this.findPath( this.start_node_name )) {
+      ns.print(`Could not find Path`)
+    }
+	
+  }
 
   get path() {
     return this._path
@@ -24,9 +24,9 @@ export class ServerPath {
     return this._already_visited_names
   }
 
-  goToTarget(target_server_name:string = this._target_node_name) {
+  goToTarget(target_server_name:string = this.target_node_name) {
     for( let next_server_name_in_path of this._path ){
-      this._ns.singularity.connect( next_server_name_in_path ) 
+      this.ns.singularity.connect( next_server_name_in_path ) 
     }
   }
   private findPath(current_node_name:string):boolean {
@@ -38,12 +38,11 @@ export class ServerPath {
     this._already_visited_names.push ( current_node_name )
     this._path.push( current_node_name )
 
-    if ( current_node_name === this._target_node_name ) {
+    if ( current_node_name === this.target_node_name ) {
       return true
     }
-    
 		
-    let child_node_names = this._ns.scan( current_node_name )
+    let child_node_names = this.ns.scan( current_node_name )
     for (let child_node_name of child_node_names){
       
       let found_path = this.findPath(child_node_name) 

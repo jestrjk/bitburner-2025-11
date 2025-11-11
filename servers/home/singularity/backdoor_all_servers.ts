@@ -19,13 +19,16 @@ export async function main(ns: NS) {
 			}
 		}
 		ns.print( `Backdoored ${backdoor_count} of ${backdoor_servers.length}`)
-		if ( backdoor_count >= backdoor_servers.length ) { ns.exit() }
+		if ( backdoor_count >= backdoor_servers.length ) {
+			(new ServerPath(ns, "home")).goToTarget()
+			ns.exit() 
+		}
 		await ns.sleep(10000)
 	}
 }
 
 async function backdoor_run(ns:NS, hostname:string) {
-	let pather = new ServerPath(ns,ns.getHostname(), hostname)
+	let pather = new ServerPath(ns, hostname)
   
   pather.goToTarget()
   await ns.singularity.installBackdoor()
