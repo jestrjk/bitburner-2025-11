@@ -26,7 +26,7 @@ export async function main(ns:NS) {
 		
 		if ( threads > 0 ) {
 			let pid = ns.exec("hacks/weaken.js", hostname, threads, "n00dles")
-			ns.print(`(${pid}) exec_share.js -t ${threads} ${hostname} (${ns.formatRam(weakenRamUsage*threads)}) `)
+			ns.print(`(${pid}) hacks/weaken.js -t ${threads} ${hostname} (${ns.formatRam(weakenRamUsage*threads)}) `)
 			ns.print( `Updated:${new Date().toLocaleString()} (${Date.now()-startedAt}ms)`)
 		}
 		

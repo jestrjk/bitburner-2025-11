@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react"
 import { saveWindowProperties, resetWindowProperties } from "../settings/ui"
 import { RuntimeDataManager } from "../polling/RuntimeDataManager"
 
+const styles =  `
+.controlPanel-container { padding:.5em }
+.controlPanel-container > * { margin-left:.1em; margin-right:.1em }`
+
 let _ns:NS
 export async function main(ns:NS) {
 	_ns = ns
@@ -14,6 +18,7 @@ export async function main(ns:NS) {
 	ns.clearLog()
 
 	ns.printRaw( <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossOrigin="anonymous"></link>)
+	ns.printRaw( <style>{styles}</style>)
 	ns.printRaw(<ControlPanel />)
 
 	while (true) {
@@ -40,7 +45,7 @@ export function ControlPanel() {
 	}
 
 	useEffect(() => {
-		_ns.tprint(`UseEffect! ${Date.now().toLocaleString()}`)
+		_ns.tprint(`UseEffect! ${new Date().toLocaleString()}`)
 		
 		const settings = dataManager.readSettings()
 		if ( settings?.maxHackLevel ) {
@@ -56,33 +61,30 @@ export function ControlPanel() {
 	const saveWindows = () => {
 		saveWindowProperties(_ns)
 	}
-
+	
+	
 	return (
 		<div>
-			<h2>Control Panel</h2>
-			
-				<div style={{padding:".5em"}}>
-					<button className="btn btn-outline-success" id="resetWindowsBtn"onClick={resetWindows}>Reset Windows</button>
-					<button className="btn btn-outline-success" id="saveWindowsBtn" onClick={saveWindows}>Save Window Properties</button>
-				</div>
+			<div className="controlPanel-container">
+				<button className="btn btn-outline-success" id="resetWindowsBtn" onClick={resetWindows}>Reset Windows</button>
+				<button className="btn btn-outline-success" id="saveWindowsBtn" onClick={saveWindows}>Save Window Properties</button>
 
-				<div style={{fontSize: "1.5em", padding:".5em"}}>MaxLevelHacking:{maxHackLevel}</div>
-				<div style={{padding:".5em"}}>
+				<span style={{fontSize: "1.2em", padding:".5em"}}>MaxLevelHacking:{maxHackLevel}</span>
+				<span className="btn-group" role="group" aria-label="Basic example">
 					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel-10)}>-10</button>
 					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel+10)}>+10</button>
 					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel-100)}> -100</button>
 					<button type="button" className="btn btn-outline-success" onClick={() => updateMaxHackLevel(maxHackLevel+100)}> +100</button>
-				</div>
-				<div style={{padding:".5em"}}>
-					<button className="btn btn-outline-success" onClick={() => _ns.run("faction/share_manager.js")}>Run Share Manager</button>
-					<button className="btn btn-outline-success" onClick={() => _ns.run("hacks/raise_hacking.js",1,"home-2")}>Run Raise Hacking</button>
+				</span>
 
-					<button className="btn btn-outline-success" onClick={() => _ns.run("singularity/purchase_darkweb_programs.js")}>Run Purchase Dark Web Programs</button>
-					<button className="btn btn-outline-success" onClick={() => _ns.run("singularity/backdoor_all_servers.js")}>Run Backdoor All Servers</button>
+				<button className="btn btn-outline-success" onClick={() => _ns.run("faction/share_manager.js")}>Share Manager</button>
+				<button className="btn btn-outline-success" onClick={() => _ns.run("hacks/raise_hacking.js",1,"home-2")}>Raise Hacking</button>
 
-					<button className="btn btn-outline-success" onClick={() => _ns.run("improvements/improve_purchased_servers.js")}>Improve Purchased Servers</button>
-				</div>
+				<button className="btn btn-outline-success" onClick={() => _ns.run("singularity/purchase_darkweb_programs.js")}>Purchase Dark Web Programs</button>
+				<button className="btn btn-outline-success" onClick={() => _ns.run("singularity/backdoor_all_servers.js")}>Backdoor All Servers</button>
 
+				<button className="btn btn-outline-success" onClick={() => _ns.run("improvements/purchased_servers.js")}>Improve Purchased Servers</button>
+			</div>
 		</div>
 	)
 }

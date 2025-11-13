@@ -164,6 +164,40 @@ ctx.watch();
 
 ```
 
+## Troubleshooting
+
+### File Watcher Issues in WSL
+
+If the file watcher stops unexpectedly in WSL (Windows Subsystem for Linux), this is often due to inotify limits being too low. The file watcher has been updated with automatic restart capabilities, but you may also need to increase inotify limits.
+
+**To fix inotify limits in WSL:**
+
+1. Check current limits:
+   ```bash
+   cat /proc/sys/fs/inotify/max_user_watches
+   cat /proc/sys/fs/inotify/max_user_instances
+   ```
+
+2. Increase limits temporarily (until WSL restart):
+   ```bash
+   sudo sysctl fs.inotify.max_user_watches=524288
+   sudo sysctl fs.inotify.max_user_instances=512
+   ```
+
+3. Make changes permanent by adding to `/etc/sysctl.conf`:
+   ```bash
+   echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf
+   echo fs.inotify.max_user_instances=512 | sudo tee -a /etc/sysctl.conf
+   ```
+
+**Note:** The file watcher will now automatically restart up to 10 times if it crashes, with exponential backoff. Check the console output for restart messages.
+
+### Other Common Issues
+
+- **Port already in use**: Make sure port 12525 is not being used by another process
+- **Connection refused**: Ensure Bitburner is running and the Remote API is enabled in settings
+- **Build errors**: Check that all dependencies are installed with `npm install`
+
 ## Remote Debugging
 
 This tool supports remote debugging for both the Steam version and the web version running in a Chrome/Chromium browser.
