@@ -1,9 +1,15 @@
-import {NS, Server} from "NetscriptDefinitions";
-import { getRunningUserScripts, UserScriptData } from "./UserScripts";
+import {NS} from "NetscriptDefinitions";
+import { getRunningUserScripts, UserScriptData } from "./UserScriptsData";
 import React,{useState, useEffect} from "react";
+import { RuntimeDataManager } from "./RuntimeDataManager";
 
 let intervalId = 0;
 let _ns:NS;
+
+function getServerListData(ns:NS) {
+  const dataManager = new RuntimeDataManager(ns)
+  return dataManager.readServerList()
+}
 
 function ServerListDataUi() {
   const [serverListData, setServerListData] = useState<ServerListData>({servers:[], hacknet_servers:[], standard_player_purchased_servers:[], last_updated:0})
@@ -16,7 +22,7 @@ function ServerListDataUi() {
   const [unknownScriptCount, setUnknownScriptCount] = useState(0)
 
   const fetchData = () => {
-    setServerListData(dataManager.readServerList())
+    setServerListData(getServerListData(_ns))
     setUserScriptsData(getRunningUserScripts(_ns))
   
     setUserScriptCount(userScriptsData.user_scripts.filter( s=> s.type === "user" ).length)

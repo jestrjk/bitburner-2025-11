@@ -1,17 +1,21 @@
-import {NS, Server} from "NetscriptDefinitions";
-import { RuntimeDataManager } from "../polling/RuntimeDataManager";
+import { RuntimeDataManager } from "./RuntimeDataManager";
+import { Server } from "NetscriptDefinitions";
 
-function recursiveServerScan(ns:NS, parent_host_name:string, newServerInfoList:Server[] = [] ) {
+export interface ServerListData {
+  last_updated: number,
+  servers: Server[]
+}
+
+export function recursiveServerScan(ns:NS, parent_host_name:string, newServerInfoList:Server[] = [] ) {
+  const newServerNames = ns.scan( parent_host_name )
   
-  let newServerNames = ns.scan( parent_host_name )
-  
-  for ( let newServerName of newServerNames ) {
+  for ( const newServerName of newServerNames ) {
     if ( newServerInfoList.find( s=>s.hostname === newServerName ) ) {
       continue;
     } else {
-			newServerInfoList.push( ns.getServer( newServerName ) )
+      newServerInfoList.push( ns.getServer( newServerName ) )
       
-      // The new server list is passed by reference, and the contents of the array mutated.
+      // The new server list is passed by reference (obvi), and the contents of the array mutated.
       // You, personally, may not like this pattern. If you don't like it, you can fix it by getting bent.
       recursiveServerScan( ns, newServerName, newServerInfoList ) 
     }
@@ -33,13 +37,10 @@ export async function main(ns:NS) {
     const new_server_list = recursiveServerScan(ns, 'home')
     dataManager.writeServerList( {
 			last_updated: Date.now(),
-			servers: 									new_server_list.filter( s=> !s.purchasedByPlayer ),
-			hacknet_servers: 					new_server_list.filter( s=> s.purchasedByPlayer && s.hostname.startsWith("hacknet")),
-			standard_player_purchased_servers: 	new_server_list.filter( s=> s.purchasedByPlayer && !s.hostname.startsWith("hacknet")),
+			servers: new_server_list,
 		})
   
     ns.print( `#Servers: ${new_server_list.length} Updated: ${new Date().toLocaleString()} (${Date.now() - startedAt}ms)` )
     await ns.sleep(500)    
   }
 }
-

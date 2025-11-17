@@ -1,4 +1,5 @@
-import { Server, RunningScript, ProcessInfo } from "NetscriptDefinitions"	
+import { RunningScript, ProcessInfo } from "NetscriptDefinitions"	
+import { RuntimeDataManager, ServerListData } from "./RuntimeDataManager"
 
 const UI_SCRIPT_NAMES = [
 	"ServerListData",
@@ -26,21 +27,47 @@ export interface UserScript extends RunningScript {
 	timeLeft: number
 }	
 
-function determineScriptType(filename: string) : UserScriptType {
+export class UserScriptDataManager {
 
-	if (UI_SCRIPT_NAMES.find(partialScriptName => filename.includes(partialScriptName)) ) {
-		return "user"
+	constructor( readonly ns: NS, readonly serverListData: ServerListData, readonly userScripts: UserScriptData) {	}
+
+	static fromStorage(ns: NS) {
+		const dataManager = new RuntimeDataManager(ns)
+
+		return new UserScriptDataManager(ns, dataManager.readUserScripts())
 	}
 
-	if (filename.endsWith("hack.js")) { return "hack" } 
-	if (filename.endsWith("weaken.js")) { return "weaken" }  
-	if (filename.endsWith("grow.js")) { return "grow" } 
+	
 
-	return "unknown"
+	public writeToStorage() {
+		const dataManager = new RuntimeDataManager(this.ns)
+		dataManager.writeUserScripts(this.userScripts)
+	}
+
+	public determineScriptType(filename: string) : UserScriptType {
+
+		if (UI_SCRIPT_NAMES.find(partialScriptName => filename.includes(partialScriptName)) ) {
+			return "user"
+		}
+	
+		if (filename.endsWith("hack.js")) { return "hack" } 
+		if (filename.endsWith("weaken.js")) { return "weaken" }  
+		if (filename.endsWith("grow.js")) { return "grow" } 
+	
+		return "unknown"
+	}
+	
 }
 
-export function getRunningUserScripts(ns: NS, serverList: Server[]): UserScript[] {
-	return serverList.flatMap(s => ns.ps(s.hostname).map(p => createUserScriptFromProcess(ns, p))) 
+
+export function getRunningUserScripts(ns: NS, serverListData?: ServerListData): UserScript[] {
+	if (!serverListData) {
+		const dataManager = new RuntimeDataManager(ns)
+		serverListData = dataManager.readServerList()
+	} 
+	
+	const userScriptServers = serverListData.servers.concat(serverListData.standard_player_purchased_servers)
+	return userScriptServers.flatMap(s => ns.ps(s.hostname).map(p => createUserScriptFromProcess(ns, p))) 
 }
 
 function createUserScriptFromProcess(ns: NS, processInfo: ProcessInfo): UserScript {

@@ -1,5 +1,6 @@
-import {Server, RunningScript} from "NetscriptDefinitions"
-import { UserScriptData } from "./UserScripts"
+import { RunningScript} from "NetscriptDefinitions"
+import { UserScriptData } from "./UserScriptsData"
+import { ServerListData } from "./ServerListData"
 
 export interface WINDOW_PROPERTIES {
 	script_name: String,
@@ -15,13 +16,6 @@ enum DATA_FILENAMES {
 	MONEY_OVER_TIME = "runtime_data/money_over_time.json",
 	SETTINGS = "runtime_data/settings.json",
 	UI_WINDOWS = "runtime_data/ui_windows.json"
-}
-
-export interface ServerListData {
-	last_updated: number,
-	servers: Server[],
-	hacknet_servers: Server[],
-	standard_player_purchased_servers: Server[]
 }
 
 export interface RunningScriptData {

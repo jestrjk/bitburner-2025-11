@@ -35,7 +35,12 @@ export async function main(ns:NS) {
 
 	heartBeat()
 	printStats(0)
-	
+
+	if ( ns.hacknet.numNodes() === 0 && ns.getPlayer().money > ns.hacknet.getPurchaseNodeCost() ) {
+		ns.hacknet.purchaseNode()
+		printStats(0)
+	}
+
 	while ( true ) {
 		const numNodes = ns.hacknet.numNodes()
 		for ( let i = 0; i < numNodes; i++ ) {
@@ -43,10 +48,15 @@ export async function main(ns:NS) {
 			const coreUpgradeCost = ns.hacknet.getCoreUpgradeCost(i) ?? Infinity
 			const ramUpgradeCost = ns.hacknet.getRamUpgradeCost(i) ?? Infinity
 			const levelUpgradeCost = ns.hacknet.getLevelUpgradeCost(i) ?? Infinity
-			
-			const minCost = Math.min(coreUpgradeCost, ramUpgradeCost, levelUpgradeCost)
-			if (  minCost < ns.getPlayer().money ) {
+			const purchaseNodeCost = (ns.hacknet.numNodes() >= ns.hacknet.maxNumNodes() ) ? Infinity : ns.hacknet.getPurchaseNodeCost() ?? Infinity
+
+			const minCost = Math.min(coreUpgradeCost, ramUpgradeCost, levelUpgradeCost, purchaseNodeCost)
+			if (  minCost < ns.getPlayer().money ) {	
 				switch ( minCost ) {
+					case purchaseNodeCost:
+						ns.hacknet.purchaseNode()
+						printStats(i)
+						break
 					case coreUpgradeCost:
 						ns.hacknet.upgradeCore(i, 1)
 						printStats(i)
