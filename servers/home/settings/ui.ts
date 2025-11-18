@@ -1,6 +1,6 @@
 import { ProcessInfo } from "NetscriptDefinitions"
-import { StorageManager, WINDOW_PROPERTIES } from "../polling/StorageManager"
-import { getScriptRunners } from "../polling/ScriptRunners"
+import { StorageManager, WINDOW_PROPERTIES } from "../data_management/StorageManager"
+import { getScriptRunners } from "../data_management/ScriptRunners"
 
 const SCRIPT_NAMES = [
 	"ServerListData",
@@ -23,8 +23,8 @@ function getUiScriptsFromScriptRunners(ns:NS) {
 }
 
 export function saveWindowProperties(ns:NS) {
-	const dataManager = new StorageManager(ns)
-	const windowPropertiesList = dataManager.readUiWindowProperties()
+	const storageManager = new StorageManager(ns)
+	const windowPropertiesList = storageManager.readUiWindowProperties()
 
 	let processInfos = getUiScriptsFromScriptRunners(ns)
 	processInfos = processInfos.filter( scriptProcess => SCRIPT_NAMES.find(partialScriptName => scriptProcess.filename.includes(partialScriptName)) )
@@ -66,7 +66,7 @@ export function saveWindowProperties(ns:NS) {
 	// ns.tprint(`Saving ${windowPropertiesList.length} window properties`)
 	// ns.tprint(JSON.stringify(windowPropertiesList,null,2))
 
-	dataManager.writeUiWindowProperties(windowPropertiesList)
+	storageManager.writeUiWindowProperties(windowPropertiesList)
 }
 
 export function resetWindowProperties(ns:NS) {

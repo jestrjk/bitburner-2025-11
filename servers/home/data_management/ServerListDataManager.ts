@@ -15,13 +15,13 @@ export class ServerListDataManager  {
   constructor( readonly ns: NS, private server_list_data: ServerListData) {}
 
   static fromStorage(ns:NS) {
-    const dataManager = new StorageManager(ns)
-    const serverListData = dataManager.readServerList()
+    const storageManager = new StorageManager(ns)
+    const serverListData = storageManager.readServerList()
     return new ServerListDataManager(ns, serverListData)
   }
   
   public writeToStorage() {
-    const dataManager = new StorageManager(this.ns)
-    dataManager.writeServerList(this.server_list_data)
+    const storageManager = new StorageManager(this.ns)
+    storageManager.writeServerList(this.server_list_data)
   }
 }

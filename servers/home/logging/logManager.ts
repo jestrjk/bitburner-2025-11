@@ -1,17 +1,17 @@
-import { StorageManager } from "../polling/StorageManager";
+import { StorageManager } from "../data_management/StorageManager";
 
 let _ns:NS
 
 export async function main(ns:NS) {
 	_ns = ns
-	const dataManager = new StorageManager(ns)
+	const storageManager = new StorageManager(ns)
 	
-	dataManager.writeLog("Log manager started")
-	dataManager.writeLog("Empty Data", {}, "info", false)
-	dataManager.writeLog("Undefined data, stack trace", undefined, "warn", true)
-	dataManager.writeLog("data, stack trace", {shit: "hitting the fan"}, "error", true)
+	storageManager.writeLog("Log manager started")
+	storageManager.writeLog("Empty Data", {}, "info", false)
+	storageManager.writeLog("Undefined data, stack trace", undefined, "warn", true)
+	storageManager.writeLog("data, stack trace", {shit: "hitting the fan"}, "error", true)
 
-	const logEntries = dataManager.readLog()
+	const logEntries = storageManager.readLog()
 	for ( const entry of logEntries ) {
 		ns.tprint(JSON.stringify(entry, null, 2))
 	}

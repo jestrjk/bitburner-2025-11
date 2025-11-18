@@ -1,5 +1,5 @@
 
-import { getScriptRunners } from "../polling/ScriptRunners";
+import { getScriptRunners } from "../data_management/ScriptRunners";
 
 export async function main(ns:NS) {
 	const scriptRunners = getScriptRunners(ns)

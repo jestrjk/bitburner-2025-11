@@ -1,4 +1,4 @@
-import { clearDataFiles } from "./polling/StorageManager"
+import { clearDataFiles } from "./data_management/StorageManager"
 
 export async function main(ns:NS) {
   ns.ui.openTail()

@@ -10,12 +10,12 @@ export class RunningScriptsDataManager {
 	constructor( readonly ns: NS, readonly running_scripts_data: RunningScriptData) {	}
 
 	static fromStorage(ns: NS) {
-		const dataManager = new StorageManager(ns)
-		return new RunningScriptsDataManager(ns, dataManager.readRunningScripts())
+		const storageManager = new StorageManager(ns)
+		return new RunningScriptsDataManager(ns, storageManager.readRunningScripts())
 	}
 	
 	public writeToStorage() {
-		const dataManager = new StorageManager(this.ns)
-		dataManager.writeRunningScripts(this.running_scripts_data)
+		const storageManager = new StorageManager(this.ns)
+		storageManager.writeRunningScripts(this.running_scripts_data)
 	}
 }

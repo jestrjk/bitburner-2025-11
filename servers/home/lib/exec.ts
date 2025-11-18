@@ -1,5 +1,5 @@
 import { Server } from "NetscriptDefinitions";
-import { getBestScriptRunner } from "../polling/ScriptRunners";
+import { getBestScriptRunner } from "../data_management/ScriptRunners";
 
 export enum SCRIPT_PATHS {
 	HACK = "/hacks/hack.js",

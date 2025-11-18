@@ -1,5 +1,5 @@
 import { NS } from "NetscriptDefinitions";
-import { ServerListData } from "../../polling/ServerListData";
+import { ServerListData } from "../../data_management/ServerListData";
 
 export async function main(ns:NS) {
   let data:ServerListData = {

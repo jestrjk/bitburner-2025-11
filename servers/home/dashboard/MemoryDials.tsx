@@ -1,6 +1,6 @@
 import React from "react"
 import { useState, useEffect } from "react"
-import { ServerListDataManager } from "../polling/ServerListDataManager"
+import { ServerListDataManager } from "../data_management/ServerListDataManager"
 interface ScriptRunnerData {
 	last_updated: number,
 	scriptRunnerHostname: string,

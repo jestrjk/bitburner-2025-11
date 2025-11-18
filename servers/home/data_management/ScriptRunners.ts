@@ -2,8 +2,8 @@
 import { StorageManager } from "./StorageManager";
 
 export function getScriptRunners(ns:NS) {
-		const dataManager = new StorageManager(ns)
-		const serverLists = dataManager.readServerList()
+		const storageManager = new StorageManager(ns)
+		const serverLists = storageManager.readServerList()
 		const scriptRunners = serverLists.servers.filter( s=> s.hasAdminRights ).concat(serverLists.standard_player_purchased_servers)
 		return scriptRunners
 }

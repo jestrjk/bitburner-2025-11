@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react"
-import { StorageManager } from "../polling/StorageManager"
+import { StorageManager } from "../data_management/StorageManager"
 
 let _ns:NS
 export async function main(ns:NS) {
@@ -78,7 +78,7 @@ export async function main(ns:NS) {
 function HacknetUI() {
 
 	const [maxHackLevel, setMaxHackLevel] = useState(3000)
-	const dataManager = new StorageManager(_ns)
+	const storageManager = new StorageManager(_ns)
 
 	return (
 		<div>

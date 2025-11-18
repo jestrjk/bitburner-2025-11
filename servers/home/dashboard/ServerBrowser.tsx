@@ -1,8 +1,8 @@
 import {Server} from "NetscriptDefinitions";
 import React, {useState, useEffect} from 'react';
-import { StorageManager, ServerListData } from '../polling/StorageManager';
+import { StorageManager, ServerListData } from '../data_management/StorageManager';
 import { _exec } from '../lib/exec';
-import { getBestScriptRunner } from "../polling/ScriptRunners";
+import { getBestScriptRunner } from "../data_management/ScriptRunners";
 
 let intervalId = 0;
 
@@ -74,8 +74,8 @@ export function ServerBrowser( { ns }: { ns:NS } ) {
     // have to call fetchServers(sortFunction) in the header click events
     sortFunction = newSortFunction;
 
-		const dataManager = new StorageManager(ns)
-    let serverData = dataManager.readServerList()
+		const storageManager = new StorageManager(ns)
+    let serverData = storageManager.readServerList()
 
     if ( displayIsAdminOnlyServers ) {
       serverData.servers = serverData.servers.filter( s => s.hasAdminRights )

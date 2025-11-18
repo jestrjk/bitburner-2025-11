@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { saveWindowProperties, resetWindowProperties } from "../settings/ui"
-import { StorageManager } from "../polling/StorageManager"
+import { StorageManager } from "../data_management/StorageManager"
 
 const styles =  `
 .controlPanel-container { padding:.5em }
@@ -28,7 +28,7 @@ export async function main(ns:NS) {
 
 export function ControlPanel() {
 	const [maxHackLevel, setMaxHackLevel] = useState(3000)
-	const dataManager = new StorageManager(_ns)
+	const storageManager = new StorageManager(_ns)
 
 	const updateMaxHackLevel = (numberDelta) => {
 		let newMaxHackLevel = Number(numberDelta)
@@ -37,9 +37,9 @@ export function ControlPanel() {
 		}
 		_ns.tprint( `new level: ${newMaxHackLevel}`)
 
-		const settings = dataManager.readSettings()
+		const settings = storageManager.readSettings()
 		settings.maxHackLevel = newMaxHackLevel
-		dataManager.writeSettings(settings)
+		storageManager.writeSettings(settings)
 
 		setMaxHackLevel(newMaxHackLevel)
 	}
@@ -47,7 +47,7 @@ export function ControlPanel() {
 	useEffect(() => {
 		_ns.tprint(`UseEffect! ${new Date().toLocaleString()}`)
 		
-		const settings = dataManager.readSettings()
+		const settings = storageManager.readSettings()
 		if ( settings?.maxHackLevel ) {
 			setMaxHackLevel(settings.maxHackLevel)
 		}

@@ -1,4 +1,4 @@
-import { StorageManager } from "../polling/StorageManager";
+import { StorageManager } from "../data_management/StorageManager";
 
 interface Settings {
 	maxHackLevel: number
@@ -11,9 +11,9 @@ let defaultSettings:Settings = {
 
 export function getSettings(ns:NS) {
 	let settings:Settings = defaultSettings
-	const dataManager = new StorageManager(ns)
+	const storageManager = new StorageManager(ns)
 	
-	try { let possibleSettings = dataManager.readSettings()
+	try { let possibleSettings = storageManager.readSettings()
 		if ( possibleSettings ) {
 			settings = possibleSettings
 		}
@@ -24,7 +24,7 @@ export function getSettings(ns:NS) {
 
 export async function main(ns:NS) {
 
-	const dataManager = new StorageManager(ns)
+	const storageManager = new StorageManager(ns)
 	let settings = getSettings(ns)
 	
 	while( ns.args.length > 0 ) {
@@ -39,6 +39,6 @@ export async function main(ns:NS) {
 		}
 	}
 
-	dataManager.writeSettings(settings)
+	storageManager.writeSettings(settings)
 	ns.tprint( JSON.stringify(settings, null, 2) )
 }

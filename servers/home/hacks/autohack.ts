@@ -1,4 +1,4 @@
-import { StorageManager, ServerListData, RunningScriptData } from "../polling/StorageManager";
+import { StorageManager, ServerListData, RunningScriptData } from "../data_management/StorageManager";
 import { NS, Server } from "@/NetscriptDefinitions";
 import { _exec, SCRIPT_PATHS } from "../lib/exec";
 import { getSettings } from "../settings/settings";
@@ -21,13 +21,13 @@ export async function main(ns : NS) {
 
 		const hostnamesOverride = ns.args as string[]
 		const debug = (hostnamesOverride.length > 0)
-		const dataManager = new StorageManager(ns)
+		const storageManager = new StorageManager(ns)
 
     while (true) {
 			const settings = getSettings(ns)
 			const startTime = Date.now()
-      const serverListData:ServerListData = dataManager.readServerList()
-      const runningScriptData:RunningScriptData = dataManager.readRunningScripts()
+      const serverListData:ServerListData = storageManager.readServerList()
+      const runningScriptData:RunningScriptData = storageManager.readRunningScripts()
 			
 			let serversToHack = serverListData.servers
 			if ( hostnamesOverride.length > 0 ) {
