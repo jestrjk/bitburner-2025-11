@@ -1,8 +1,8 @@
 
-import { RuntimeDataManager } from "./RuntimeDataManager";
+import { StorageManager } from "./StorageManager";
 
 export function getScriptRunners(ns:NS) {
-		const dataManager = new RuntimeDataManager(ns)
+		const dataManager = new StorageManager(ns)
 		const serverLists = dataManager.readServerList()
 		const scriptRunners = serverLists.servers.filter( s=> s.hasAdminRights ).concat(serverLists.standard_player_purchased_servers)
 		return scriptRunners

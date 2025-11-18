@@ -1,7 +1,6 @@
 import React from "react"
 import { useState, useEffect } from "react"
-import { getScriptRunners } from "../polling/ScriptRunners"
-
+import { ServerListDataManager } from "../polling/ServerListDataManager"
 interface ScriptRunnerData {
 	last_updated: number,
 	scriptRunnerHostname: string,
@@ -57,12 +56,17 @@ export default function MemoryDials() {
 	const [scriptRunnerData, setScriptRunnerData] = useState<ScriptRunnerData[]>([]) 
 	
 	const fetchData = async () => {
-		const scriptRunners = getScriptRunners(_ns)
+		const manager = ServerListDataManager.fromStorage(_ns)
+
+		// TODO: we should fold this scrip runner data into the user scripts data manager
 		const newList:ScriptRunnerData[] = []
-		scriptRunners.forEach( scriptRunner => {
+		const playerPurchasedServers = manager.getStandardPlayerPurchasedServers()
+		
+		playerPurchasedServers.forEach( scriptRunner => {
 			newList.push({ last_updated: Date.now(), scriptRunnerHostname: scriptRunner.hostname, 
 				ramUsed: scriptRunner.ramUsed, maxMemory: scriptRunner.maxRam, memoryAvailable: scriptRunner.maxRam - scriptRunner.ramUsed })
 		})
+		
 		setScriptRunnerData(newList)
 	}
 

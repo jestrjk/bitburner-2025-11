@@ -1,10 +1,10 @@
-import { RuntimeDataManager } from "../polling/RuntimeDataManager";
+import { StorageManager } from "../polling/StorageManager";
 
 let _ns:NS
 
 export async function main(ns:NS) {
 	_ns = ns
-	const dataManager = new RuntimeDataManager(ns)
+	const dataManager = new StorageManager(ns)
 	
 	dataManager.writeLog("Log manager started")
 	dataManager.writeLog("Empty Data", {}, "info", false)

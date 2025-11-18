@@ -3,7 +3,7 @@ export async function main(ns:NS) {
 	ns.ui.openTail()
 	ns.clearLog()
 
-	let hostname = ns.args[0] as string
+	let hostname = ns.args[0] as string ?? "home"
 	ns.scp("hacks/weaken.js", hostname)
 
 	while(true) {
@@ -17,6 +17,7 @@ export async function main(ns:NS) {
 		ns.disableLog("exec")
 		ns.clearLog()
 		
+	
 		let hackingSkill = ns.getHackingLevel()
 		ns.print( `Hacking Skill: ${hackingSkill}`)
 				

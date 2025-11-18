@@ -1,20 +1,17 @@
-import {NS} from "NetscriptDefinitions";
-import { getRunningUserScripts, UserScriptData } from "./UserScriptsData";
 import React,{useState, useEffect} from "react";
-import { RuntimeDataManager } from "./RuntimeDataManager";
+import { ServerListData } from "./ServerListData";
+import { ServerListDataManager } from "./ServerListDataManager";
+import { RunningScriptData } from "./RunningScriptsData";
+import { RunningScriptsDataManager } from "./RunningScriptsDataManager";
 
 let intervalId = 0;
 let _ns:NS;
 
-function getServerListData(ns:NS) {
-  const dataManager = new RuntimeDataManager(ns)
-  return dataManager.readServerList()
-}
-
-function ServerListDataUi() {
-  const [serverListData, setServerListData] = useState<ServerListData>({servers:[], hacknet_servers:[], standard_player_purchased_servers:[], last_updated:0})
-  const [userScriptsData, setUserScriptsData] = useState<UserScriptData>({last_updated:0, user_scripts:[]})
+function ServerListDataUi( {interval}: {interval:number } = {interval:1000} ) {
+  const [serverListData, setServerListData] = useState<ServerListData>({servers:[], last_updated:0})
+  const [runningScriptsData, setRunningScriptsData] = useState<RunningScriptData>({last_updated:0, running_scripts:[]})
   
+
   const [userScriptCount, setUserScriptCount] = useState(0)
   const [hackScriptCount, setHackScriptCount] = useState(0)
   const [growScriptCount, setGrowScriptCount] = useState(0)
@@ -22,8 +19,10 @@ function ServerListDataUi() {
   const [unknownScriptCount, setUnknownScriptCount] = useState(0)
 
   const fetchData = () => {
-    setServerListData(getServerListData(_ns))
-    setUserScriptsData(getRunningUserScripts(_ns))
+    const serverListDataManager = ServerListDataManager.fromStorage(_ns)
+    setServerListData(serverListDataManager.serverListData)
+    const runningScriptsDataManager = RunningScriptsDataManager.fromStorage(_ns)
+    setUserScriptsData(runningScriptsDataManager.running_scripts_data)
   
     setUserScriptCount(userScriptsData.user_scripts.filter( s=> s.type === "user" ).length)
     setHackScriptCount(userScriptsData.user_scripts.filter( s=> s.type === "hack" ).length)
@@ -37,7 +36,7 @@ function ServerListDataUi() {
 
     fetchData()
 
-    intervalId = setInterval(() => fetchData(), 1000);
+    intervalId = setInterval(() => fetchData(), interval);
     return () => clearInterval(intervalId);
   }, [])
   

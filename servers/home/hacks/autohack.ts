@@ -1,4 +1,4 @@
-import { RuntimeDataManager, ServerListData, RunningScriptData } from "../polling/RuntimeDataManager";
+import { StorageManager, ServerListData, RunningScriptData } from "../polling/StorageManager";
 import { NS, Server } from "@/NetscriptDefinitions";
 import { _exec, SCRIPT_PATHS } from "../lib/exec";
 import { getSettings } from "../settings/settings";
@@ -21,7 +21,7 @@ export async function main(ns : NS) {
 
 		const hostnamesOverride = ns.args as string[]
 		const debug = (hostnamesOverride.length > 0)
-		const dataManager = new RuntimeDataManager(ns)
+		const dataManager = new StorageManager(ns)
 
     while (true) {
 			const settings = getSettings(ns)

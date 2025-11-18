@@ -1,5 +1,5 @@
-import { RunningScript} from "NetscriptDefinitions"
-import { UserScriptData } from "./UserScriptsData"
+import { RunningScript } from "NetscriptDefinitions"
+import { RunningScriptData } from "./RunningScriptsData"
 import { ServerListData } from "./ServerListData"
 
 export interface WINDOW_PROPERTIES {
@@ -16,25 +16,6 @@ enum DATA_FILENAMES {
 	MONEY_OVER_TIME = "runtime_data/money_over_time.json",
 	SETTINGS = "runtime_data/settings.json",
 	UI_WINDOWS = "runtime_data/ui_windows.json"
-}
-
-export interface RunningScriptData {
-	last_updated: number,
-	running_scripts: RunningScriptExtended[]
-}
-
-export interface RunningScriptExtended extends RunningScript {
-	hackType: string,
-	targetHostname: string,
-	ramUsageMultiThreaded: number,
-	timeLeft: number
-}
-
-export interface HackGrowWeakenScript extends RunningScript {
-	hackType: string,
-	targetHostname: string,
-	ramUsageMultiThreaded: number,
-	timeLeft: number
 }
 
 export function clearDataFiles( ns:NS ) {
@@ -62,7 +43,7 @@ export interface LogEntry {
 	data?: any
 }
 
-export class RuntimeDataManager {
+export class StorageManager {
 	constructor( readonly ns:NS ) {}
 
 	private getLogName() {
@@ -110,15 +91,7 @@ export class RuntimeDataManager {
 	public writeRunningScripts( data:RunningScriptData ) {
 		this.writeDataFile<RunningScriptData>( DATA_FILENAMES.RUNNING_SCRIPTS, data )
 	}
-
-	public readUserScripts() {
-		return this.readDataFile<UserScriptData>( DATA_FILENAMES.USER_SCRIPTS )
-	}
-
-	public writeUserScripts( data:UserScriptData ) {
-		this.writeDataFile<UserScriptData>( DATA_FILENAMES.USER_SCRIPTS, data )
-	}
-
+	
 	public readMoneyOverTime() {
 		return this.readDataFile<MoneyOverTimeData[]>( DATA_FILENAMES.MONEY_OVER_TIME )
 	}

@@ -1,5 +1,5 @@
-import { RuntimeDataManager } from "./RuntimeDataManager";
 import { Server } from "NetscriptDefinitions";
+import {ServerListDataManager} from "./ServerListDataManager";
 
 export interface ServerListData {
   last_updated: number,
@@ -29,16 +29,17 @@ export async function main(ns:NS) {
 	ns.disableLog("sleep")
   ns.disableLog("scan")
 
-	const dataManager = new RuntimeDataManager(ns)
   while (true) {
     const startedAt = Date.now()
     ns.clearLog()
 
     const new_server_list = recursiveServerScan(ns, 'home')
-    dataManager.writeServerList( {
-			last_updated: Date.now(),
-			servers: new_server_list,
-		})
+
+    const serverListDataManager = new ServerListDataManager(ns, {
+      last_updated: Date.now(),
+      servers: new_server_list,
+    })
+    serverListDataManager.writeToStorage()
   
     ns.print( `#Servers: ${new_server_list.length} Updated: ${new Date().toLocaleString()} (${Date.now() - startedAt}ms)` )
     await ns.sleep(500)    

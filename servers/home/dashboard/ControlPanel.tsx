@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { saveWindowProperties, resetWindowProperties } from "../settings/ui"
-import { RuntimeDataManager } from "../polling/RuntimeDataManager"
+import { StorageManager } from "../polling/StorageManager"
 
 const styles =  `
 .controlPanel-container { padding:.5em }
@@ -28,7 +28,7 @@ export async function main(ns:NS) {
 
 export function ControlPanel() {
 	const [maxHackLevel, setMaxHackLevel] = useState(3000)
-	const dataManager = new RuntimeDataManager(_ns)
+	const dataManager = new StorageManager(_ns)
 
 	const updateMaxHackLevel = (numberDelta) => {
 		let newMaxHackLevel = Number(numberDelta)

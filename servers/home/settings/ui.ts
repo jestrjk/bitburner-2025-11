@@ -1,5 +1,5 @@
 import { ProcessInfo } from "NetscriptDefinitions"
-import { RuntimeDataManager, WINDOW_PROPERTIES } from "../polling/RuntimeDataManager"
+import { StorageManager, WINDOW_PROPERTIES } from "../polling/StorageManager"
 import { getScriptRunners } from "../polling/ScriptRunners"
 
 const SCRIPT_NAMES = [
@@ -23,7 +23,7 @@ function getUiScriptsFromScriptRunners(ns:NS) {
 }
 
 export function saveWindowProperties(ns:NS) {
-	const dataManager = new RuntimeDataManager(ns)
+	const dataManager = new StorageManager(ns)
 	const windowPropertiesList = dataManager.readUiWindowProperties()
 
 	let processInfos = getUiScriptsFromScriptRunners(ns)
@@ -73,7 +73,7 @@ export function resetWindowProperties(ns:NS) {
 
 	const processInfos = getUiScriptsFromScriptRunners(ns)
 
-	const manager = new RuntimeDataManager(ns)
+	const manager = new StorageManager(ns)
 	const windowPropertiesList = manager.readUiWindowProperties()
 
 	for ( const setting of windowPropertiesList ) {

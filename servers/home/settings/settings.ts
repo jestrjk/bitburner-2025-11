@@ -1,4 +1,4 @@
-import { RuntimeDataManager } from "../polling/RuntimeDataManager";
+import { StorageManager } from "../polling/StorageManager";
 
 interface Settings {
 	maxHackLevel: number
@@ -11,7 +11,7 @@ let defaultSettings:Settings = {
 
 export function getSettings(ns:NS) {
 	let settings:Settings = defaultSettings
-	const dataManager = new RuntimeDataManager(ns)
+	const dataManager = new StorageManager(ns)
 	
 	try { let possibleSettings = dataManager.readSettings()
 		if ( possibleSettings ) {
@@ -24,7 +24,7 @@ export function getSettings(ns:NS) {
 
 export async function main(ns:NS) {
 
-	const dataManager = new RuntimeDataManager(ns)
+	const dataManager = new StorageManager(ns)
 	let settings = getSettings(ns)
 	
 	while( ns.args.length > 0 ) {
